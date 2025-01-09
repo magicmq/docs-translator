@@ -61,7 +61,9 @@ If you have a suggestion or modification that would make DocsTranslator better, 
 
 ## Settings
 
-The `settings.yml` file is the main configuration file for the project. Options are outlined below.
+The `settings.yml` file is the main configuration file for the project. If a `settings.yml` file doesn't already exist in the same directory as the DocsTranslator JAR file when it is run, then a default version is generated and placed there.
+
+Options are outlined below.
 
 ### `general`:
 
