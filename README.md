@@ -195,8 +195,18 @@ Options for the generated `pyproject.toml` file.
 
 ### Type Translation
 
-Because Java is statically-typed, but Python is not, translation of Java types to Python types is not perfect. For example:
+Because Java is statically-typed, but Python is not, translation of Java types to Python types is not perfect. Additionally, not all Java types are seamlessly interchangeable with Python types. For example:
 
 * The Java `Collection` type is translated to a Python `Iterable`, although these types are not wholly interchangeable.
 * Generics are not fully translated. This could be attempted with the `TypeVar` class (available in Python's `typing` module), however, I did not pursue this given that it would become quite completed with Java classes that contain several generic methods.
 * Other examples of imperfect type translation exist. See the [TypeUtils](https://github.com/magicmq/docs-translator/blob/master/src/main/java/dev/magicmq/docstranslator/utils/TypeUtils.java) class for a better idea on how type translation is handled.
+
+### JavaDoc Translation
+
+Because JavaDoc strings are ultimately converted into HTML when generating JavaDocs for a Java project, usage of HTML tags/elements are allowed when writing JavaDoc strings. This presents a problem when translating JavaDoc strings to Python docstrings because Python docstrings, unlike JavaDoc strings, do not natively support HTML tags/elements. There are some docstring parsers that use markdown
+
+Based on my own testing, it seems that the Pylance extension in VSCode, the IDE I am using to assess translation quality, interprets *some* (but not all) Markdown syntax. Therefore, I have attempted to translate as much as I can from HTML to Markdown, however, some HTML tags remain untranslated, namely:
+
+- HTML tags pertaining to tables: `<table>`, `<th>`, `<tr>`, `<td>`, etc.
+- HTML heading tags: `<h1>`, `<h2>`, `<h3>`, etc.
+- Other miscellaneous tags: `<blockquote>`, and more
