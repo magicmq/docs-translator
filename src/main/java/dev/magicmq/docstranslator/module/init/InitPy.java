@@ -70,5 +70,4 @@ public class InitPy implements Translatable {
             DocsTranslator.get().getLogger().log(Level.SEVERE, "Error when saving __init__.py to folder '" + fullPath + "'", e);
         }
     }
-
 }

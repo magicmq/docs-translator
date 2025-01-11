@@ -54,9 +54,8 @@ public class JdkTranslator {
 
     public void translateSources() {
         for (Path sourceFilePath : neededSourcesPaths) {
-            for (Path parentPath : getParentPaths(sourceFilePath)) {
-                generateInitPy(parentPath);
-            }
+            Path parentPath = sourceFilePath.getParent();
+            generateInitPy(parentPath);
 
             try {
                 String sourceFileName = sourceFilePath.getFileName().toString();
@@ -65,6 +64,8 @@ public class JdkTranslator {
                 Path absoluteSourcePath = javaSourcesPath.resolve(sourceFilePath);
 
                 DocsTranslator.get().getLogger().log(Level.FINE, "Processing JDK source file '" + sourceFileName + "'");
+
+                registry.getInitPyAt(parentPath).addImport(className);
 
                 String translated = translateSource(absoluteSourcePath, className);
                 Path outputFilePath = outputFolder.resolve(sourceFilePath.getParent()).resolve(className + ".py");
@@ -108,18 +109,6 @@ public class JdkTranslator {
             DocsTranslator.get().getLogger().log(Level.SEVERE, "Error when saving file '" + outputFilePath.getFileName().toString() + "' to output folder", e);
             e.printStackTrace();
         }
-    }
-
-    private List<Path> getParentPaths(Path path) {
-        List<Path> parentPaths = new ArrayList<>();
-
-        Path parent = path.getParent();
-        while (parent != null) {
-            parentPaths.add(parent);
-            parent = parent.getParent();
-        }
-
-        return parentPaths;
     }
 
     private void generateInitPy(Path folder) {

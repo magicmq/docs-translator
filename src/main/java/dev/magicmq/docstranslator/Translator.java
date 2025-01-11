@@ -71,21 +71,22 @@ public class Translator {
     }
 
     private void translateSources(Stream<Path> walker, String artifactId, String artifactVersion) {
-        walker.forEach(path -> {
-            Path physicalPath = Path.of(path.toString());
-            if (Files.isDirectory(path)) {
-                if (!path.toString().contains("META-INF") && !path.toString().isEmpty())
-                    generateInitPy(physicalPath);
-            } else {
-                if (path.getFileName().toString().endsWith(".java")) {
+        walker
+                .filter(Files::isRegularFile)
+                .filter(path -> path.getFileName().toString().endsWith(".java"))
+                .forEach(path -> {
+                    Path physicalPath = Path.of(path.toString());
                     try {
                         String sourceFileName = path.getFileName().toString();
                         String className = sourceFileName.substring(0, sourceFileName.lastIndexOf("."));
 
                         if (!className.equals("package-info") && !className.equals("module-info")) {
+                            Path parentPath = physicalPath.getParent();
+                            generateInitPy(parentPath);
+
                             DocsTranslator.get().getLogger().log(Level.FINE, "Processing source file '" + sourceFileName + "'");
 
-                            registry.getInitPyAt(physicalPath.getParent()).addImport(className);
+                            registry.getInitPyAt(parentPath).addImport(className);
 
                             String translated = translateSource(path, artifactId, artifactVersion, className);
                             Path outputFilePath = outputFolder.resolve(physicalPath.getParent()).resolve(className + ".py");
@@ -97,8 +98,6 @@ public class Translator {
                         DocsTranslator.get().getLogger().log(Level.SEVERE, "Error when processing source file '" + path.getFileName().toString() + "'", e);
                         e.printStackTrace();
                     }
-                }
-            }
         });
     }
 

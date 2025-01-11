@@ -26,7 +26,7 @@ The application runs in a stepwise fashion:
     * JDK sources must be downloaded manually and placed in the appropriate folder (`jdk-sources` by default)
     * This step is only completed if enabled in the `settings.yml` (via the `jdkSources.translate` option)
 7. All `__init__.py` files are generated and placed in their appropriate locations.
-8. `setup.py` and `pyproject.toml` files are generated from options specified in the `settings.yml` and are placed in the user-defined output folder (`generated` by default).
+8. Python package-related files (`setup.py`, `pyproject.toml`, `MANIFEST.in`, `LICENSE`) are generated from options specified in the `settings.yml` and are placed in the user-defined output folder (`generated` by default).
 
 Generated files are intended to be built into a Python package that can subsequently be installed into a Python virtual environment and imported.
 
@@ -190,6 +190,14 @@ Options for the generated `pyproject.toml` file.
 
 - `requires`: Required modules/packages to build the project.
 - `buildBackend`: The build backend for the project.
+
+#### `manifest`:
+
+A list of lines to include in the `MANIFEST.in` file for the Python package.
+
+#### `license`:
+
+A URL pointing to the license text to bundle with the Python package.
 
 ## Caveats/Known Issues
 

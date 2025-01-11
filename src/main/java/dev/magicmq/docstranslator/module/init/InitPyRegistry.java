@@ -18,35 +18,30 @@ package dev.magicmq.docstranslator.module.init;
 
 
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
 
 public class InitPyRegistry {
 
-    private final List<InitPy> initPys;
+    private final HashMap<Path, InitPy> initPys;
 
     public InitPyRegistry() {
-        this.initPys = new ArrayList<>();
+        this.initPys = new HashMap<>();
     }
 
     public boolean doesInitPyExistAt(Path path) {
-        return getInitPyAt(path) != null;
+        return initPys.containsKey(path);
     }
 
     public InitPy getInitPyAt(Path path) {
-        for (InitPy initPy : initPys) {
-            if (initPy.getPath().equals(path))
-                return initPy;
-        }
-        return null;
+        return initPys.get(path);
     }
 
     public void newInitPy(Path path) {
-        initPys.add(new InitPy(path));
+        initPys.put(path, new InitPy(path));
     }
 
     public void saveInitPys(Path outputFolderPath) {
-        for (InitPy initPy : initPys)
+        for (InitPy initPy : initPys.values())
             initPy.saveToFolder(outputFolderPath);
     }
 }
