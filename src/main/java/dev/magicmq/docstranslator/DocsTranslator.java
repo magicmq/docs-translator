@@ -23,7 +23,6 @@ import org.apache.commons.io.FileUtils;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.*;
-import java.net.URL;
 import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -146,23 +145,7 @@ public class DocsTranslator {
 
     private void downloadJars() throws IOException {
         for (String url : settings.getSourceJars().getUrls()) {
-            downloadJar(url);
-        }
-    }
-
-    private void downloadJar(String url) throws IOException {
-        String fileName = url.substring(url.lastIndexOf("/") + 1);
-        Path savePath = jarsFolderPath.resolve(fileName);
-
-        try (InputStream inputStream = new BufferedInputStream(new URL(url).openStream());
-            FileOutputStream out = new FileOutputStream(savePath.toFile())) {
-
-            byte[] buffer = new byte[1024];
-            int bytesRead;
-
-            while ((bytesRead = inputStream.read(buffer)) != -1) {
-                out.write(buffer, 0, bytesRead);
-            }
+            Utils.downloadResource(url, jarsFolderPath);
         }
     }
 

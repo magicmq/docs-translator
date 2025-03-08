@@ -27,8 +27,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -56,12 +58,23 @@ public class PackagingGenerator {
 
         List<String> pyModules;
         if (settings.getPackaging().getSetup().getPyModules() != null) {
-            pyModules = settings.getPackaging().getSetup().getPyModules()
-                    .stream()
-                    .map(string -> "'" + string + "'")
-                    .toList();
+            pyModules = settings.getPackaging().getSetup().getPyModules();
         } else {
             pyModules = Collections.emptyList();
+        }
+
+        List<String> pyModuleNames = new ArrayList<>();
+        for (String pyModule : pyModules) {
+            try {
+                Utils.downloadResource(pyModule, outputDir);
+
+                String fileName = pyModule.substring(pyModule.lastIndexOf("/") + 1);
+                String moduleName = fileName.substring(0, fileName.length() - 3);
+                pyModuleNames.add("'" + moduleName + "'");
+            } catch (IOException e) {
+                DocsTranslator.get().getLogger().log(Level.SEVERE, "Error when downloading python module at URL " + pyModule, e);
+                e.printStackTrace();
+            }
         }
 
         Matcher matcher = classifierPattern.matcher(setup);
@@ -78,7 +91,7 @@ public class PackagingGenerator {
                 .replace("%author_email%", settings.getPackaging().getSetup().getAuthorEmail())
                 .replace("%description%", settings.getPackaging().getSetup().getDescription())
                 .replace("%url%", settings.getPackaging().getSetup().getUrl())
-                .replace("%py_modules%", String.join(", ", pyModules))
+                .replace("%py_modules%", String.join(", ", pyModuleNames))
                 .replace("%python_requires%", settings.getPackaging().getSetup().getPythonRequires())
                 .replace("%classifiers%", String.join(",\n" + spaces, classifiers));
 
