@@ -137,7 +137,7 @@ formats:
       )
     pyProject: |
       [build-system]
-      requires = [%requires%],
+      requires = [%requires%]
       build-backend = "%build_backend%"
 
 packaging:
