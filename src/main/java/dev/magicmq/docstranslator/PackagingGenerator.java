@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Path;
+import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -53,10 +54,15 @@ public class PackagingGenerator {
     private void generateSetupPy() throws IOException {
         String setup = settings.getFormats().getPackaging().getSetup();
 
-        List<String> pyModules = settings.getPackaging().getSetup().getPyModules()
-                .stream()
-                .map(string -> "'" + string + "'")
-                .toList();
+        List<String> pyModules;
+        if (settings.getPackaging().getSetup().getPyModules() != null) {
+            pyModules = settings.getPackaging().getSetup().getPyModules()
+                    .stream()
+                    .map(string -> "'" + string + "'")
+                    .toList();
+        } else {
+            pyModules = Collections.emptyList();
+        }
 
         Matcher matcher = classifierPattern.matcher(setup);
         String spaces = matcher.find() ? matcher.group(1) : "";
