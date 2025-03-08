@@ -12,7 +12,6 @@ sourceJars:
     - 'https://repo1.maven.org/maven2/com/google/guava/guava/32.1.2-jre/guava-32.1.2-jre-sources.jar'
     - 'https://repo1.maven.org/maven2/org/joml/joml/1.10.5/joml-1.10.5-sources.jar'
     - 'https://repo1.maven.org/maven2/org/yaml/snakeyaml/2.2/snakeyaml-2.2-sources.jar'
-    - 'https://repo.magicmq.dev/repository/maven-releases/dev/magicmq/pyspigot/0.7.1/pyspigot-0.7.1-sources.jar'
 
 jdkSources:
   translate: true
@@ -120,7 +119,7 @@ formats:
     unknown: 'Unknown Tags'
   packaging:
     setup: |
-      from setuptools import setup, find_packages
+      from setuptools import setup, find_namespace_packages
       
       setup(
           name='%name%',
@@ -130,7 +129,7 @@ formats:
           description='%description%',
           url='%url%',
           py_modules=[%py_modules%],
-          packages=find_packages(),
+          packages=find_namespace_packages(),
           python_requires='%python_requires%',
           classifiers = [
               %classifiers%
