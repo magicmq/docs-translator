@@ -63,8 +63,10 @@ public class Translator {
             }
         }
 
-        DocsTranslator.get().getLogger().log(Level.INFO, "Translating JDK sources...");
-        jdkTranslator.translateSources();
+        if (DocsTranslator.get().getSettings().getJdkSources().isTranslate()) {
+            DocsTranslator.get().getLogger().log(Level.INFO, "Translating JDK sources...");
+            jdkTranslator.translateSources();
+        }
 
         DocsTranslator.get().getLogger().log(Level.INFO, "Saving __init__.py files...");
         registry.saveInitPys(outputFolder);
