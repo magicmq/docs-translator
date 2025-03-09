@@ -24,17 +24,27 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.file.Path;
 import java.util.logging.Level;
 
 public class Main {
 
-    public static void main(String[] args) {
-        DocsTranslator translator = DocsTranslator.get();
+    private static Path workingDir;
 
-        File file = new File("settings.yml");
+    public static void main(String[] args) {
+        if (args.length > 0) {
+            workingDir = Path.of(args[0]);
+        } else {
+            workingDir = Path.of(".");
+        }
+
+        File file = workingDir.resolve(Path.of("settings.yml")).toFile();
+
         if (!file.exists()) {
             saveSettings();
         }
+
+        DocsTranslator translator = DocsTranslator.get();
 
         try {
             translator.start();
@@ -42,6 +52,10 @@ public class Main {
             translator.getLogger().log(Level.SEVERE, "Error when translating", e);
             e.printStackTrace();
         }
+    }
+
+    public static Path getWorkingDir() {
+        return workingDir;
     }
 
     private static void saveSettings() {

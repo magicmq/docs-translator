@@ -93,7 +93,9 @@ public class DocsTranslator {
     private void initSettings() {
         Yaml yaml = new Yaml();
 
-        try (InputStream inputStream = new FileInputStream("settings.yml")) {
+        File file = Main.getWorkingDir().resolve("settings.yml").toFile();
+
+        try (InputStream inputStream = new FileInputStream(file)) {
             this.settings = yaml.loadAs(inputStream, Settings.class);
         } catch (IOException e) {
             try (InputStream inputStream = DocsTranslator.class.getClassLoader().getResourceAsStream("settings.yml")) {
@@ -120,7 +122,7 @@ public class DocsTranslator {
         logger.addHandler(consoleHandler);
 
         try {
-            FileHandler fileHandler = new FileHandler("output.log", true);
+            FileHandler fileHandler = new FileHandler(Main.getWorkingDir().toString() + "/output.log", true);
             fileHandler.setFormatter(new CustomFormatter());
             logger.addHandler(fileHandler);
         } catch (IOException e) {
@@ -130,9 +132,9 @@ public class DocsTranslator {
     }
 
     private void initDirectories() throws IOException {
-        jarsFolderPath = Path.of(settings.getSourceJars().getPath()).toAbsolutePath();
-        javaSourcesPath = Path.of(settings.getJdkSources().getPath()).toAbsolutePath();
-        outputFolderPath = Path.of(settings.getOutput().getPath()).toAbsolutePath();
+        jarsFolderPath = Main.getWorkingDir().resolve(Path.of(settings.getSourceJars().getPath())).toAbsolutePath();
+        javaSourcesPath = Main.getWorkingDir().resolve(Path.of(settings.getJdkSources().getPath())).toAbsolutePath();
+        outputFolderPath = Main.getWorkingDir().resolve(Path.of(settings.getOutput().getPath())).toAbsolutePath();
 
         if (settings.getSourceJars().isDeleteOnStart())
             FileUtils.deleteDirectory(jarsFolderPath.toFile());
