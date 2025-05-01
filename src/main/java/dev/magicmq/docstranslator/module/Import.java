@@ -21,6 +21,10 @@ import dev.magicmq.docstranslator.DocsTranslator;
 
 public record Import(String packageName, String className) implements Comparable<Import> {
 
+    public String classNameAsPythonString() {
+        return "'" + className + "'";
+    }
+
     @Override
     public int compareTo(Import o) {
         return (this.packageName + "." + this.className).compareTo(o.packageName + "." + o.className);

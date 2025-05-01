@@ -20,6 +20,7 @@ package dev.magicmq.docstranslator.module.init;
 import dev.magicmq.docstranslator.DocsTranslator;
 import dev.magicmq.docstranslator.base.Translatable;
 import dev.magicmq.docstranslator.module.Import;
+import dev.magicmq.docstranslator.utils.StringUtils;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -51,7 +52,17 @@ public class InitPy implements Translatable {
 
     @Override
     public String translate() {
-        return imports.stream().map(Import::toString).collect(Collectors.joining("\n"));
+        StringBuilder output = new StringBuilder();
+
+        output.append(imports.stream().map(Import::toString).collect(Collectors.joining("\n")));
+
+        output.append("\n\n");
+
+        output.append("__all__ = [\n");
+        output.append(StringUtils.indent(imports.stream().map(Import::classNameAsPythonString).collect(Collectors.joining(",\n")), 4));
+        output.append("\n]\n");
+
+        return output.toString();
     }
 
     public void saveToFolder(Path outputFolderPath) {
