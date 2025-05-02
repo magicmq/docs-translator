@@ -21,6 +21,8 @@ import com.github.javaparser.ast.type.*;
 
 public final class TypeUtils {
 
+    private TypeUtils() {}
+
     public static String convertValue(String value) {
         if (value.endsWith(".class"))
             return value.substring(0, value.length() - 6);
@@ -117,5 +119,4 @@ public final class TypeUtils {
         else
             return "Any";
     }
-
 }

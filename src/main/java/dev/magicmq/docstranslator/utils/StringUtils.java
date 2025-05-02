@@ -22,6 +22,8 @@ import java.util.stream.Stream;
 
 public final class StringUtils {
 
+    private StringUtils() {}
+
     public static String indent(String string, int n) {
         if (string.isEmpty()) {
             return "";
