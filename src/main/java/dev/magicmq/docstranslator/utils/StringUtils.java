@@ -63,9 +63,6 @@ public final class StringUtils {
         string = string.replace("<li>", "- ");
         string = string.replace("</li>", "");
 
-        string = string.replace("true", "True");
-        string = string.replace("false", "False");
-
         return string;
     }
 
