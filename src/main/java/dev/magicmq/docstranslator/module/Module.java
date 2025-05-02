@@ -37,6 +37,7 @@ import java.util.stream.Collectors;
 
 public class Module implements Translatable {
 
+    private final String groupId;
     private final String artifactId;
     private final String artifactVersion;
     private final String packageName;
@@ -47,7 +48,8 @@ public class Module implements Translatable {
 
     private Member member;
 
-    public Module(String artifactId, String artifactVersion, String packageName, String moduleName, JdkTranslator javaTranslator) {
+    public Module(String groupId, String artifactId, String artifactVersion, String packageName, String moduleName, JdkTranslator javaTranslator) {
+        this.groupId = groupId;
         this.artifactId = artifactId;
         this.artifactVersion = artifactVersion;
         this.packageName = packageName;
@@ -117,6 +119,7 @@ public class Module implements Translatable {
 
         builder.append(DocsTranslator.get().getSettings().getFormats().getModule().getDocString()
                 .replace("%class%", packageName + "." + moduleName)
+                .replace("%group_id%", groupId)
                 .replace("%artifact_id%", artifactId)
                 .replace("%artifact_version%", artifactVersion));
 

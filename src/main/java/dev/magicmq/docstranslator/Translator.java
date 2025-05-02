@@ -22,43 +22,41 @@ import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.nodeTypes.NodeWithName;
 import dev.magicmq.docstranslator.module.Module;
 import dev.magicmq.docstranslator.module.init.InitPyRegistry;
+import org.eclipse.aether.artifact.Artifact;
 
 import java.io.*;
 import java.nio.file.*;
 import java.util.List;
 import java.util.logging.Level;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 public class Translator {
 
-    private static final Pattern ARTIFACT_PATTERN = Pattern.compile("^([a-zA-Z0-9\\-]+?)-(\\d+\\.\\d+(?:\\.\\d+)?(?:-[a-zA-Z0-9-.]+)?)-sources(?:\\.jar)?$");
-
-    private final List<Path> jarFilePaths;
+    private final List<Artifact> artifacts;
     private final Path outputFolder;
     private final InitPyRegistry registry;
     private final JdkTranslator jdkTranslator;
 
-    public Translator(List<Path> jarFilePaths, Path javaSourcesPath, Path outputFolder) {
-        this.jarFilePaths = jarFilePaths;
+    public Translator(List<Artifact> artifacts, Path javaSourcesPath, Path outputFolder) {
+        this.artifacts = artifacts;
         this.outputFolder = outputFolder;
         this.registry = new InitPyRegistry();
         this.jdkTranslator = new JdkTranslator(javaSourcesPath, this.outputFolder, registry);
     }
 
     public void translate() throws IOException {
-        for (Path jarFilePath : jarFilePaths) {
-            Matcher matcher = ARTIFACT_PATTERN.matcher(jarFilePath.getFileName().toString());
-            matcher.find();
-            String artifactId = matcher.group(1);
-            String artifactVersion = matcher.group(2);
+        for (Artifact artifact : artifacts) {
+            Path jarFilePath = artifact.getFile().toPath();
+
+            String groupId = artifact.getGroupId();
+            String artifactId = artifact.getArtifactId();
+            String artifactVersion = artifact.getVersion();
 
             try (FileSystem jarFileSystem = FileSystems.newFileSystem(jarFilePath)) {
                 Path root = jarFileSystem.getPath("");
 
                 try (Stream<Path> walk = Files.walk(root)) {
-                    translateSources(walk, artifactId, artifactVersion);
+                    translateSources(walk, groupId, artifactId, artifactVersion);
                 }
             }
         }
@@ -72,7 +70,7 @@ public class Translator {
         registry.saveInitPys(outputFolder);
     }
 
-    private void translateSources(Stream<Path> walker, String artifactId, String artifactVersion) {
+    private void translateSources(Stream<Path> walker, String groupId, String artifactId, String artifactVersion) {
         walker
                 .filter(Files::isRegularFile)
                 .filter(path -> path.getFileName().toString().endsWith(".java"))
@@ -90,7 +88,7 @@ public class Translator {
 
                             registry.getInitPyAt(parentPath).addImport(className);
 
-                            String translated = translateSource(path, artifactId, artifactVersion, className);
+                            String translated = translateSource(path, groupId, artifactId, artifactVersion, className);
                             Path outputFilePath = outputFolder.resolve(physicalPath.getParent()).resolve(className + ".py");
                             saveTranslatedFile(outputFilePath, translated);
 
@@ -103,7 +101,7 @@ public class Translator {
         });
     }
 
-    private String translateSource(Path sourceFilePath, String artifactId, String artifactVersion, String className) throws IOException {
+    private String translateSource(Path sourceFilePath, String groupId, String artifactId, String artifactVersion, String className) throws IOException {
         String fileContent = Files.readString(sourceFilePath);
 
         CompilationUnit cu = new JavaParser().parse(fileContent).getResult().orElseThrow();
@@ -113,6 +111,7 @@ public class Translator {
                 .orElse("");
 
         Module module = new Module(
+                groupId,
                 artifactId,
                 artifactVersion,
                 packageName,

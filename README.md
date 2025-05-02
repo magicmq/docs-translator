@@ -22,16 +22,17 @@ DocsTranslator relies heavily upon the [JavaParser](https://javaparser.org/) lib
 The application runs in a stepwise fashion:
 
 1. The application initializes all working directories.
-2. Java source JAR files (I.E. those that follow the format `*-sources.jar`) from remote repositories/URLs defined in the `settings.yml`.
-3. The application loops through all files contained within downloaded source JAR files. When it encounters a Java soruce file (ending in `.java`), the file is parsed with JavaParser and a best effort attempt is made to translate the source file into Python code.
+2. Java source JAR files (I.E. those that follow the format `*-sources.jar`) are fetched from remote Maven repositories (for artifacts defined in the `settings.yml`) and installed into a local Maven repository using [Apache Maven Resolver](https://maven.apache.org/resolver/).
+3. Apache Maven Resolver resolves and fetches dependencies for all artifacts fetched in the previous step, using the scope specified in the `settings.yml`. Runtime dependencies are fetched by default, as these will be accessible at runtime.
+4. The application loops through the contents of all fetched JAR files. When it encounters a Java soruce file (ending in `.java`), the file is parsed with JavaParser, and a best-effort attempt is made to translate the source file into Python code.
     * Any files not ending in `.java` are ignored.
-4. Translated `.py` files are placed in the user-defined output folder (`generated` by default), in the appropriate package.
-5. An entry is added to the `__init__.py` file in the appropriate package, to allow for importing the python module as one would normally import a Java class in Jython.
-6. Any source files from the Java Standard Library utilized by the previously translated Java source files are also translated in the same process outlined above.
+5. Translated `.py` files are placed in the user-defined output folder (`generated` by default), in the appropriate package.
+6. An entry is added to the `__init__.py` file in the appropriate package, to allow for importing the python module as one would normally import a Java class in Jython.
+7. Any source files from the Java Standard Library utilized by the previously translated Java source files are also translated in the same process outlined above.
     * JDK sources must be downloaded manually and placed in the appropriate folder (`jdk-sources` by default)
     * This step is only completed if enabled in the `settings.yml` (via the `jdkSources.translate` option)
-7. All `__init__.py` files are generated and placed in their appropriate locations.
-8. Python package-related files (`setup.py`, `pyproject.toml`, `MANIFEST.in`, `LICENSE`) are generated from options specified in the `settings.yml` and are placed in the user-defined output folder (`generated` by default).
+8. All `__init__.py` files are generated and placed in their appropriate locations.
+9. Python package-related files (`setup.py`, `pyproject.toml`, `MANIFEST.in`, `LICENSE`) are generated from options specified in the `settings.yml` and are placed in the user-defined output folder (`generated` by default).
 
 Generated files are intended to be built into a Python package that can subsequently be installed into a Python virtual environment and imported.
 
@@ -76,14 +77,16 @@ General options.
 
 - `loggingLevel`: The mimum logging level for a message to be logged to console and to the `output.log` file.
 
-### `sourceJars`:
+### `maven`:
 
-Options pertaining to source JAR files to be translated.
+Options pertaining to fetching the JAR file (and its dependencies) to be translated. Downloaded JARs are placed into a local Maven repository.
 
-- `path`: The path to the folder where source JAR files are downloaded and placed.
-- `deleteOnStart`: If set to `true`, the JARs folder will be deleted when DocsTranslator first runs.
-- `download`: If set to `true`, JAR files listed in the `urls` section will be downloaded
-- `urls`: A list of URLs pointing to source JAR files that should be downloaded.
+- `path`: The path where the local Maven repository should be placed.
+- `useCentral`: If set to `true`, Maven Central will be included as one of the remote repositories to search for dependencies.
+- `repositories`: A list of remote repositories to be searched for the listed artifacts to translate (and its dependencies). Each item in the list should contain an `id` to identify it and a `url` pointing to the location of the remote repository.
+- `deleteOnStart`: If set to `true`, the folder containing the local Maven repository will be deleted when DocsTranslator first runs.
+- `artifacts`: A list of artifacts (in the format `groupId:artifactId:version`) to fetch and translate.
+- `dependencyScope`: The [scope](https://maven.apache.org/guides/introduction/introduction-to-dependency-mechanism.html#Dependency_Scope) to use to limit transitivity when fetching dependencies of an artifact.
 
 ### `jdkSources`:
 
@@ -91,6 +94,7 @@ Options pertaining to sources from the Java Standard Library.
 
 - `translate`: If set to `true`, any utilized Java Standard Library source files will also be translated.
 - `path`: The path to the folder where the Java Standard Library sources are located.
+- `group`: Used when adding docstrings to the generated `.py` modules or Java Standard Library sources.
 - `name`: Used when adding docstrings to the generated `.py` modules for Java Standard Library sources.
 - `version`: Used when adding docstrings to the generated `.py` modules for Java Standard Library sources.
 

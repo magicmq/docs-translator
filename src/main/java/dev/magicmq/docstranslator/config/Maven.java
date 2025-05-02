@@ -19,12 +19,14 @@ package dev.magicmq.docstranslator.config;
 
 import java.util.List;
 
-public class SourceJars {
+public class Maven {
 
     private String path;
+    private boolean useCentral;
+    private List<Repository> repositories;
     private boolean deleteOnStart;
-    private boolean download;
-    private List<String> urls;
+    private List<String> artifacts;
+    private String dependencyScope;
 
     public String getPath() {
         return path;
@@ -32,6 +34,22 @@ public class SourceJars {
 
     public void setPath(String path) {
         this.path = path;
+    }
+
+    public boolean isUseCentral() {
+        return useCentral;
+    }
+
+    public void setUseCentral(boolean useCentral) {
+        this.useCentral = useCentral;
+    }
+
+    public List<Repository> getRepositories() {
+        return repositories;
+    }
+
+    public void setRepositories(List<Repository> repositories) {
+        this.repositories = repositories;
     }
 
     public boolean isDeleteOnStart() {
@@ -42,19 +60,19 @@ public class SourceJars {
         this.deleteOnStart = deleteOnStart;
     }
 
-    public boolean isDownload() {
-        return download;
+    public List<String> getArtifacts() {
+        return artifacts;
     }
 
-    public void setDownload(boolean download) {
-        this.download = download;
+    public void setArtifacts(List<String> artifacts) {
+        this.artifacts = artifacts;
     }
 
-    public List<String> getUrls() {
-        return urls;
+    public String getDependencyScope() {
+        return dependencyScope;
     }
 
-    public void setUrls(List<String> urls) {
-        this.urls = urls;
+    public void setDependencyScope(String dependencyScope) {
+        this.dependencyScope = dependencyScope;
     }
 }

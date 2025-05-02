@@ -20,6 +20,7 @@ public class JdkSources {
 
     private boolean translate;
     private String path;
+    private String group;
     private String name;
     private String version;
 
@@ -37,6 +38,14 @@ public class JdkSources {
 
     public void setPath(String path) {
         this.path = path;
+    }
+
+    public String getGroup() {
+        return group;
+    }
+
+    public void setGroup(String group) {
+        this.group = group;
     }
 
     public String getName() {

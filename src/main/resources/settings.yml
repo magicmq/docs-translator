@@ -1,17 +1,21 @@
 general:
   loggingLevel: 'INFO'
 
-sourceJars:
-  path: 'jars'
+maven:
+  path: 'maven'
+  useCentral: true
+  repositories:
+    - id: 'spigot-repo'
+      url: 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/'
   deleteOnStart: true
-  download: true
-  urls:
-    - 'https://repo.magicmq.dev/repository/maven-releases/dev/magicmq/pyspigot-core/0.8.0/pyspigot-core-0.8.0-sources.jar'
-    - 'https://repo.magicmq.dev/repository/maven-releases/dev/magicmq/pyspigot-bukkit/0.8.0/pyspigot-bukkit-0.8.0-sources.jar'
+  artifacts:
+    - 'org.spigotmc:spigot-api:1.21.4-R0.1-SNAPSHOT'
+  dependencyScope: 'runtime'
 
 jdkSources:
   translate: false
   path: 'jdk-sources'
+  group: 'openjdk'
   name: 'jdk'
   version: '17'
 
@@ -74,7 +78,7 @@ formats:
       """
       Python module generated from Java source file %class%
       
-      Java source file obtained from artifact %artifact_id% version %artifact_version%
+      Java source file obtained from artifact %group_id%:%artifact_id%:%artifact_version%
       
       Because this Python module is automatically generated, it may contain errors
       and/or code that cannot be parsed. Please report these issues at

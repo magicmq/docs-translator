@@ -89,8 +89,9 @@ public class JdkTranslator {
                 .orElse("");
 
         Module module = new Module(
+                DocsTranslator.get().getSettings().getJdkSources().getGroup(),
                 DocsTranslator.get().getSettings().getJdkSources().getName(),
-                DocsTranslator.get().getSettings().getJdkSources().getName(),
+                DocsTranslator.get().getSettings().getJdkSources().getVersion(),
                 packageName,
                 className,
                 this

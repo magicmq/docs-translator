@@ -22,7 +22,7 @@ import dev.magicmq.docstranslator.config.packaging.Packaging;
 public class Settings {
 
     private General general;
-    private SourceJars sourceJars;
+    private Maven maven;
     private JdkSources jdkSources;
     private Output output;
     private ImportExclusions importExclusions;
@@ -37,12 +37,12 @@ public class Settings {
         this.general = general;
     }
 
-    public SourceJars getSourceJars() {
-        return sourceJars;
+    public Maven getMaven() {
+        return maven;
     }
 
-    public void setSourceJars(SourceJars sourceJars) {
-        this.sourceJars = sourceJars;
+    public void setMaven(Maven maven) {
+        this.maven = maven;
     }
 
     public JdkSources getJdkSources() {

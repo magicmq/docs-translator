@@ -17,17 +17,17 @@
 package dev.magicmq.docstranslator;
 
 
+import dev.magicmq.docstranslator.config.Repository;
 import dev.magicmq.docstranslator.config.Settings;
 import dev.magicmq.docstranslator.utils.logging.CustomFormatter;
 import org.apache.commons.io.FileUtils;
+import org.eclipse.aether.artifact.Artifact;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.*;
 import java.nio.file.*;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.*;
-import java.util.stream.Stream;
 
 public class DocsTranslator {
 
@@ -36,7 +36,7 @@ public class DocsTranslator {
     private Logger logger;
     private Settings settings;
 
-    private Path jarsFolderPath;
+    private Path mavenPath;
     private Path javaSourcesPath;
     private Path outputFolderPath;
 
@@ -50,23 +50,13 @@ public class DocsTranslator {
 
         initDirectories();
 
-        if (settings.getSourceJars().isDownload()) {
-            logger.log(Level.INFO, "Downloading JARs...");
+        logger.log(Level.INFO, "Fetching artifacts to translate...");
 
-            downloadJars();
-        }
-
-        List<Path> jarFilePaths = new ArrayList<>();
-        try (Stream<Path> paths = Files.walk(jarsFolderPath)) {
-            paths.forEach(path -> {
-                if (Files.isRegularFile(path))
-                    jarFilePaths.add(path);
-            });
-        }
+        List<Artifact> artifacts = fetchArtifacts();
 
         logger.log(Level.INFO, "Translating sources...");
 
-        Translator translator = new Translator(jarFilePaths, javaSourcesPath, outputFolderPath);
+        Translator translator = new Translator(artifacts, javaSourcesPath, outputFolderPath);
         try {
             translator.translate();
         } catch (IOException e) {
@@ -132,23 +122,26 @@ public class DocsTranslator {
     }
 
     private void initDirectories() throws IOException {
-        jarsFolderPath = Main.getWorkingDir().resolve(Path.of(settings.getSourceJars().getPath())).toAbsolutePath();
+        mavenPath = Main.getWorkingDir().resolve(Path.of(settings.getMaven().getPath())).toAbsolutePath();
         javaSourcesPath = Main.getWorkingDir().resolve(Path.of(settings.getJdkSources().getPath())).toAbsolutePath();
         outputFolderPath = Main.getWorkingDir().resolve(Path.of(settings.getOutput().getPath())).toAbsolutePath();
 
-        if (settings.getSourceJars().isDeleteOnStart())
-            FileUtils.deleteDirectory(jarsFolderPath.toFile());
-        Files.createDirectories(jarsFolderPath);
+        if (settings.getMaven().isDeleteOnStart())
+            FileUtils.deleteDirectory(mavenPath.toFile());
+        Files.createDirectories(mavenPath);
 
         if (settings.getOutput().isDeleteOnStart())
             FileUtils.deleteDirectory(outputFolderPath.toFile());
         Files.createDirectories(outputFolderPath);
     }
 
-    private void downloadJars() throws IOException {
-        for (String url : settings.getSourceJars().getUrls()) {
-            Utils.downloadResource(url, jarsFolderPath);
+    private List<Artifact> fetchArtifacts() {
+        MavenResolver resolver = new MavenResolver(mavenPath.toFile(), settings.getMaven().isUseCentral(), settings.getMaven().getDependencyScope());
+        for (Repository repository : settings.getMaven().getRepositories()) {
+            resolver.addRemoteRepository(repository.getId(), repository.getUrl());
         }
+
+        return resolver.fetch(settings.getMaven().getArtifacts());
     }
 
     public static DocsTranslator get() {
