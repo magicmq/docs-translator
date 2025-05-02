@@ -212,6 +212,31 @@ Because Java is statically-typed, but Python is not, translation of Java types t
 
 * The Java `Collection` type is translated to a Python `Iterable`, although these types are not wholly interchangeable.
 * Generics are not fully translated. This could be attempted with the `TypeVar` class (available in Python's `typing` module), however, I did not pursue this given that it would become quite completed with Java classes that contain several generic methods.
+* Python has no direct equivalent to Java's `char` type, which has consequences. For example, consider the following two overloaded methods from the `org.bukkit.ChatColor` class:
+  ```java
+  @Nullable
+  public static ChatColor getByChar(char code) {
+      ...
+  }
+  
+  @Nullable
+  public static ChatColor getByChar(@NotNull String code) {
+      ...
+  }
+  ```
+  DocsTranslator translates these to:
+  ```py
+  @overload
+  @staticmethod
+  def getByChar(code: str) -> "ChatColor":
+      ...
+
+  @overload
+  @staticmethod
+  def getByChar(code: str) -> "ChatColor":
+      ...
+  ```
+  The translated Python functions are **identical**, even though they are **not** identical in Java. DocsTranslator translates `char` to `str`, and, as a consequence, these two translated functions accept the same parameters.
 * Other examples of imperfect type translation exist. See the [TypeUtils](https://github.com/magicmq/docs-translator/blob/master/src/main/java/dev/magicmq/docstranslator/utils/TypeUtils.java) class for a better idea on how type translation is handled.
 
 ### JavaDoc Translation
