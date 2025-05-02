@@ -157,19 +157,18 @@ Options for translation of JavaDoc comments into Python docstrings.
 
 - `author`: The format for the JavaDoc `@author` tag.
 - `deprecated`: The format for the JavaDoc `@deprecated` tag.
-- `params`: The format for the docstring parameters section.
 - `param`: The format for the JavaDoc `@param` tag.
 - `typeParam`: The format for any defined type parameter.
-- `returns`: The format for the JavaDoc `@returns` tag.
+- `return`: The format for the JavaDoc `@returns` tag.
 - `see`: The format for the JavaDoc `@see` tag.
 - `serial`: The format for the JavaDoc `@serial` tag.
 - `serialData`: The format for the JavaDoc `@serialdata` tag.
 - `serialField`: The format for the JavaDoc `@serialfield` tag.
 - `since`: The format for the JavaDoc `@since` tag.
-- `throws`: The format for the docstring throws section.
 - `throw`: The format for the JavaDoc `@throws` tag.
 - `version`: The format for the JavaDoc `@version` tag.
-- `unknown`: The format for any unknown or unparseable JavaDoc tag.
+- `unknown`: The header format for any unknown or unparseable JavaDoc tag.
+- `unknownTag`: The format for each unknown tag. 
 
 ### `packaging`:
 

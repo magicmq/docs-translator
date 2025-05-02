@@ -18,30 +18,20 @@ package dev.magicmq.docstranslator.config.formats;
 
 public class DocString {
 
-    private String generalFormat;
     private String author;
     private String deprecated;
-    private String params;
     private String param;
     private String typeParam;
-    private String returns;
+    private String return_;
     private String see;
     private String serial;
     private String serialData;
     private String serialField;
     private String since;
-    private String throws_;
     private String throw_;
     private String version;
     private String unknown;
-
-    public String getGeneralFormat() {
-        return generalFormat;
-    }
-
-    public void setGeneralFormat(String generalFormat) {
-        this.generalFormat = generalFormat;
-    }
+    private String unknownTag;
 
     public String getAuthor() {
         return author;
@@ -57,14 +47,6 @@ public class DocString {
 
     public void setDeprecated(String deprecated) {
         this.deprecated = deprecated;
-    }
-
-    public String getParams() {
-        return params;
-    }
-
-    public void setParams(String params) {
-        this.params = params;
     }
 
     public String getParam() {
@@ -83,12 +65,12 @@ public class DocString {
         this.typeParam = typeParam;
     }
 
-    public String getReturns() {
-        return returns;
+    public String getReturn() {
+        return return_;
     }
 
-    public void setReturns(String returns) {
-        this.returns = returns;
+    public void setReturn(String return_) {
+        this.return_ = return_;
     }
 
     public String getSee() {
@@ -131,14 +113,6 @@ public class DocString {
         this.since = since;
     }
 
-    public String getThrows() {
-        return throws_;
-    }
-
-    public void setThrows(String throws_) {
-        this.throws_ = throws_;
-    }
-
     public String getThrow() {
         return throw_;
     }
@@ -161,5 +135,13 @@ public class DocString {
 
     public void setUnknown(String unknown) {
         this.unknown = unknown;
+    }
+
+    public String getUnknownTag() {
+        return unknownTag;
+    }
+
+    public void setUnknownTag(String unknownTag) {
+        this.unknownTag = unknownTag;
     }
 }
