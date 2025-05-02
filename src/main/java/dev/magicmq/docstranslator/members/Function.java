@@ -32,9 +32,20 @@ public class Function extends Member {
 
     private final MethodDeclaration methodDeclaration;
 
+    private boolean overloaded;
+
     public Function(int indent, MethodDeclaration methodDeclaration) {
         super(indent);
         this.methodDeclaration = methodDeclaration;
+        this.overloaded = false;
+    }
+
+    public void markOverloaded() {
+        this.overloaded = true;
+    }
+
+    public String getFunctionName() {
+        return methodDeclaration.getNameAsString();
     }
 
     @Override
@@ -62,6 +73,11 @@ public class Function extends Member {
         }
 
         StringBuilder builder = new StringBuilder();
+
+        if (overloaded) {
+            builder.append(StringUtils.indent("@overload", indent));
+            builder.append("\n");
+        }
 
         if (methodDeclaration.isStatic()) {
             builder.append(StringUtils.indent("@staticmethod", indent));

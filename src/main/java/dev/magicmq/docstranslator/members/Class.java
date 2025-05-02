@@ -23,6 +23,7 @@ import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.javadoc.Javadoc;
 import dev.magicmq.docstranslator.DocsTranslator;
 import dev.magicmq.docstranslator.module.Module;
+import dev.magicmq.docstranslator.utils.FunctionUtils;
 import dev.magicmq.docstranslator.utils.StringUtils;
 
 import java.util.ArrayList;
@@ -79,6 +80,9 @@ public class Class extends Member {
             if (constructor.isPublic())
                 constructors.add(new InitFunction(indent + 4, constructor));
         }
+        if (constructors.size() > 1) {
+            constructors.forEach(InitFunction::markOverloaded);
+        }
 
         for (MethodDeclaration method : declaration.getMethods()) {
             if (declaration.isInterface() || method.isPublic()) {
@@ -86,6 +90,7 @@ public class Class extends Member {
                 this.functions.add(function);
             }
         }
+        FunctionUtils.markOverloadedFunctions(this.functions);
 
         List<ClassOrInterfaceDeclaration> innerClasses = declaration.findAll(ClassOrInterfaceDeclaration.class, inner -> inner.getParentNode().orElseThrow().equals(declaration));
         for (ClassOrInterfaceDeclaration innerClass : innerClasses) {

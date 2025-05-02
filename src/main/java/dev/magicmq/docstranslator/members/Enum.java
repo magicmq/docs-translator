@@ -22,6 +22,7 @@ import com.github.javaparser.ast.comments.JavadocComment;
 import com.github.javaparser.javadoc.Javadoc;
 import dev.magicmq.docstranslator.DocsTranslator;
 import dev.magicmq.docstranslator.module.Module;
+import dev.magicmq.docstranslator.utils.FunctionUtils;
 import dev.magicmq.docstranslator.utils.StringUtils;
 
 import java.util.ArrayList;
@@ -81,6 +82,7 @@ public class Enum extends Member {
                 this.functions.add(function);
             }
         }
+        FunctionUtils.markOverloadedFunctions(this.functions);
 
         List<ClassOrInterfaceDeclaration> innerClasses = declaration.findAll(ClassOrInterfaceDeclaration.class, inner -> inner.getParentNode().orElseThrow().equals(declaration));
         for (ClassOrInterfaceDeclaration innerClass : innerClasses) {

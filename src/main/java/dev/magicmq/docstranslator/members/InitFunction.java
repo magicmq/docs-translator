@@ -32,9 +32,16 @@ public class InitFunction extends Member {
 
     private final ConstructorDeclaration constructorDeclaration;
 
+    private boolean overloaded;
+
     public InitFunction(int indent, ConstructorDeclaration constructorDeclaration) {
         super(indent);
         this.constructorDeclaration = constructorDeclaration;
+        this.overloaded = false;
+    }
+
+    public void markOverloaded() {
+        this.overloaded = true;
     }
 
     @Override
@@ -59,6 +66,11 @@ public class InitFunction extends Member {
         }
 
         StringBuilder builder = new StringBuilder();
+
+        if (overloaded) {
+            builder.append(StringUtils.indent("@overload", indent));
+            builder.append("\n");
+        }
 
         String params = String.join(", ", parameters);
         String def = DocsTranslator.get().getSettings().getFormats().getFunction().getInitDefinition().replace("%params%", params);

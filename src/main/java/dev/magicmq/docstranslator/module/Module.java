@@ -54,7 +54,7 @@ public class Module implements Translatable {
         this.moduleName = moduleName;
         this.javaTranslator = javaTranslator;
         this.imports = new TreeSet<>();
-        imports.add(new Import("typing", "Any, Callable, Iterable, Tuple"));
+        imports.add(new Import("typing", "Any, Callable, Iterable, Tuple, overload"));
     }
 
     public void init(CompilationUnit cu) {
