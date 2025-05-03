@@ -24,14 +24,18 @@ import com.github.javaparser.javadoc.description.JavadocInlineTag;
 import dev.magicmq.docstranslator.SettingsProvider;
 import dev.magicmq.docstranslator.base.Indented;
 import dev.magicmq.docstranslator.utils.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class DocString extends Indented {
 
+    private static final Logger logger = LoggerFactory.getLogger(DocString.class);
     private static final Pattern TYPE_PARAMETER_PATTERN = Pattern.compile("<([^>])>");
 
     private final List<String> params;
@@ -88,32 +92,45 @@ public class DocString extends Indented {
             }
             String text = StringUtils.replaceFormatting(tagBuilder.toString());
 
-            if (type == JavadocBlockTag.Type.AUTHOR)
+            if (type == JavadocBlockTag.Type.AUTHOR) {
                 setAuthor(text);
-            else if (type == JavadocBlockTag.Type.DEPRECATED)
+            } else if (type == JavadocBlockTag.Type.DEPRECATED) {
                 setDeprecated(text);
-            else if (type == JavadocBlockTag.Type.EXCEPTION)
-                addThrows(tag.getName().orElseThrow(), text);
-            else if (type == JavadocBlockTag.Type.PARAM) {
-                addParam(tag.getName().orElseThrow(), text);
+            } else if (type == JavadocBlockTag.Type.EXCEPTION) {
+                try {
+                    addThrows(tag.getName().orElseThrow(), text);
+                } catch (NoSuchElementException e) {
+                    logger.warn("Error when parsing JavaDocs @exception tag '{}'. Unable to get exception. Skipping...", tag.toText());
+                }
+            } else if (type == JavadocBlockTag.Type.PARAM) {
+                try {
+                    addParam(tag.getName().orElseThrow(), text);
+                } catch (NoSuchElementException e) {
+                    logger.warn("Error when parsing JavaDocs @param tag '{}'. Unable to get parameter. Skipping...", tag.toText());
+                }
             } else if (type == JavadocBlockTag.Type.RETURN)
                 addReturns(text);
-            else if (type == JavadocBlockTag.Type.SEE)
+            else if (type == JavadocBlockTag.Type.SEE) {
                 setSee(text.replace("#", "."));
-            else if (type == JavadocBlockTag.Type.SERIAL)
+            } else if (type == JavadocBlockTag.Type.SERIAL) {
                 addSerial(text);
-            else if (type == JavadocBlockTag.Type.SERIAL_DATA)
+            } else if (type == JavadocBlockTag.Type.SERIAL_DATA) {
                 addSerialData(text);
-            else if (type == JavadocBlockTag.Type.SERIAL_FIELD)
+            } else if (type == JavadocBlockTag.Type.SERIAL_FIELD) {
                 addSerialField(text);
-            else if (type == JavadocBlockTag.Type.SINCE)
+            } else if (type == JavadocBlockTag.Type.SINCE) {
                 setSince(text);
-            else if (type == JavadocBlockTag.Type.THROWS)
-                addThrows(tag.getName().orElseThrow(), text);
-            else if (type == JavadocBlockTag.Type.VERSION)
+            } else if (type == JavadocBlockTag.Type.THROWS) {
+                try {
+                    addThrows(tag.getName().orElseThrow(), text);
+                } catch (NoSuchElementException e) {
+                    logger.warn("Error when parsing JavaDocs @throws tag '{}'. Unable to get exception. Skipping...", tag.toText());
+                }
+            } else if (type == JavadocBlockTag.Type.VERSION) {
                 setVersion(text);
-            else if (type == JavadocBlockTag.Type.UNKNOWN)
+            } else if (type == JavadocBlockTag.Type.UNKNOWN) {
                 addUnknown("@" + tag.getTagName(), text);
+            }
         }
     }
 

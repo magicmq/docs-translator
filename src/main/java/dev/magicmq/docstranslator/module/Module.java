@@ -31,11 +31,16 @@ import dev.magicmq.docstranslator.members.Annotation;
 import dev.magicmq.docstranslator.members.Class;
 import dev.magicmq.docstranslator.members.Enum;
 import dev.magicmq.docstranslator.members.Member;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.util.NoSuchElementException;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 public class Module implements Translatable {
+
+    private static final Logger logger = LoggerFactory.getLogger(Module.class);
 
     private final String groupId;
     private final String artifactId;
@@ -65,7 +70,13 @@ public class Module implements Translatable {
                 continue;
 
             Name name = imp.getName();
-            String packageName = name.getQualifier().orElseThrow().asString();
+            String packageName;
+            try {
+                packageName = name.getQualifier().orElseThrow().asString();
+            } catch (NoSuchElementException e) {
+                logger.warn("Failed to parse import '{}' for class '{}'. Skipping this import...", name.asString(), this.packageName + "." + moduleName);
+                continue;
+            }
             String className = name.getIdentifier();
 
             if (imp.isAsterisk()) {

@@ -33,6 +33,7 @@ import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 public class JdkTranslator {
 
@@ -77,7 +78,7 @@ public class JdkTranslator {
             } catch (NoSuchFileException e) {
                 logger.error("Could not process JDK source file '{}' because the file does not exist", sourceFilePath);
             } catch (IOException e) {
-                logger.error("Error when processing JDK source file '{}'", sourceFilePath, e);
+                logger.error("Error when processing JDK source file '{}'. Skipping...", sourceFilePath, e);
             }
         }
     }
@@ -85,7 +86,19 @@ public class JdkTranslator {
     private String translateSource(Path sourceFilePath, String className) throws IOException {
         String fileContent = Files.readString(sourceFilePath);
 
-        CompilationUnit cu = new JavaParser().parse(fileContent).getResult().orElseThrow();
+        CompilationUnit cu;
+        try {
+            cu = new JavaParser().parse(fileContent).getResult().orElseThrow();
+        } catch (NoSuchElementException e) {
+            return
+                    """
+                    \"\"\"
+                    DocsTranslator encountered an error when attempting to translate this module.
+                    
+                    JavaParser was unable to parse the Java source file.
+                    \"\"\"
+                    """;
+        }
 
         String packageName = cu.getPackageDeclaration()
                 .map(NodeWithName::getNameAsString)

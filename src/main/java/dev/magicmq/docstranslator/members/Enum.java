@@ -28,12 +28,17 @@ import dev.magicmq.docstranslator.SettingsProvider;
 import dev.magicmq.docstranslator.module.Module;
 import dev.magicmq.docstranslator.utils.FunctionUtils;
 import dev.magicmq.docstranslator.utils.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 public class Enum extends Member {
+
+    private static final Logger logger = LoggerFactory.getLogger(Enum.class);
 
     private final Module parent;
 
@@ -88,7 +93,14 @@ public class Enum extends Member {
         }
         FunctionUtils.markOverloadedFunctions(this.functions);
 
-        List<ClassOrInterfaceDeclaration> innerClasses = declaration.findAll(ClassOrInterfaceDeclaration.class, inner -> inner.getParentNode().orElseThrow().equals(declaration));
+        List<ClassOrInterfaceDeclaration> innerClasses = declaration.findAll(ClassOrInterfaceDeclaration.class, inner -> {
+            try {
+                return inner.getParentNode().orElseThrow().equals(declaration);
+            } catch (NoSuchElementException e) {
+                logger.warn("Error when getting parent node for inner class '{}'. Skipping...", inner.getNameAsString());
+                return false;
+            }
+        });
         for (ClassOrInterfaceDeclaration innerClass : innerClasses) {
             if (innerClass.isPublic()) {
                 Class clazz = new Class(indent + 4, parent);
@@ -97,7 +109,14 @@ public class Enum extends Member {
             }
         }
 
-        List<EnumDeclaration> innerEnums = declaration.findAll(EnumDeclaration.class, inner -> inner.getParentNode().orElseThrow().equals(declaration));
+        List<EnumDeclaration> innerEnums = declaration.findAll(EnumDeclaration.class, inner -> {
+            try {
+                return inner.getParentNode().orElseThrow().equals(declaration);
+            } catch (NoSuchElementException e) {
+                logger.warn("Error when getting parent node for inner enum '{}'. Skipping...", inner.getNameAsString());
+                return false;
+            }
+        });
         for (EnumDeclaration innerEnum : innerEnums) {
             if (innerEnum.isPublic()) {
                 Enum enum_ = new Enum(indent + 4, parent);

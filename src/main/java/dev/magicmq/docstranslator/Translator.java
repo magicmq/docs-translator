@@ -34,6 +34,7 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.stream.Stream;
 
 public class Translator {
@@ -104,7 +105,7 @@ public class Translator {
                             saveTranslatedFile(outputFilePath, translated);
                         }
                     } catch (IOException e) {
-                        logger.error("Error when processing source file '{}'", path, e);
+                        logger.error("Error when processing source file '{}'. Skipping...", path, e);
                     }
         });
     }
@@ -112,7 +113,19 @@ public class Translator {
     private String translateSource(Path sourceFilePath, String groupId, String artifactId, String artifactVersion, String className) throws IOException {
         String fileContent = Files.readString(sourceFilePath);
 
-        CompilationUnit cu = new JavaParser().parse(fileContent).getResult().orElseThrow();
+        CompilationUnit cu;
+        try {
+            cu = new JavaParser().parse(fileContent).getResult().orElseThrow();
+        } catch (NoSuchElementException e) {
+            return
+                    """
+                    \"\"\"
+                    DocsTranslator encountered an error when attempting to translate this module.
+                    
+                    JavaParser was unable to parse the Java source file.
+                    \"\"\"
+                    """;
+        }
 
         String packageName = cu.getPackageDeclaration()
                 .map(NodeWithName::getNameAsString)
