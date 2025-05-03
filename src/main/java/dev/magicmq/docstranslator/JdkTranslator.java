@@ -29,6 +29,7 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -66,15 +67,17 @@ public class JdkTranslator {
 
                 Path absoluteSourcePath = javaSourcesPath.resolve(sourceFilePath);
 
-                logger.debug("Processing JDK source file '{}'", sourceFileName);
+                logger.debug("Processing JDK source file '{}'", sourceFilePath);
 
                 registry.getInitPyAt(parentPath).addImport(className);
 
                 String translated = translateSource(absoluteSourcePath, className);
                 Path outputFilePath = outputFolder.resolve(sourceFilePath.getParent()).resolve(className + ".py");
                 saveTranslatedFile(outputFilePath, translated);
+            } catch (NoSuchFileException e) {
+                logger.error("Could not process JDK source file '{}' because the file does not exist", sourceFilePath);
             } catch (IOException e) {
-                logger.error("Error when processing JDK source file '{}'", sourceFilePath.getFileName().toString(), e);
+                logger.error("Error when processing JDK source file '{}'", sourceFilePath, e);
             }
         }
     }

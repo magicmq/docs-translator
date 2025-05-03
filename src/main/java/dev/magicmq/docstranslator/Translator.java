@@ -95,7 +95,7 @@ public class Translator {
                             Path parentPath = physicalPath.getParent();
                             generateInitPy(parentPath);
 
-                            logger.debug("Processing source file '{}'", sourceFileName);
+                            logger.debug("Processing source file '{}'", path);
 
                             registry.getInitPyAt(parentPath).addImport(className);
 
@@ -104,7 +104,7 @@ public class Translator {
                             saveTranslatedFile(outputFilePath, translated);
                         }
                     } catch (IOException e) {
-                        logger.error("Error when processing source file '{}'", path.getFileName().toString(), e);
+                        logger.error("Error when processing source file '{}'", path, e);
                     }
         });
     }

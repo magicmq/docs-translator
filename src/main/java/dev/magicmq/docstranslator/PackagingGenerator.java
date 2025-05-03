@@ -46,9 +46,13 @@ public class PackagingGenerator {
     }
 
     public void generate() throws IOException {
+        logger.info("Generating setup.py...");
         generateSetupPy();
+        logger.info("Generating pyproject.toml...");
         generatePyProject();
+        logger.info("Generating MANIFEST.in...");
         generateManifest();
+        logger.info("Downloading LICENSE...");
         saveLicense();
     }
 
@@ -64,7 +68,7 @@ public class PackagingGenerator {
 
         List<String> pyModuleNames = new ArrayList<>();
         for (String pyModule : pyModules) {
-            logger.debug("Downloading python module at URL {}", pyModule);
+            logger.debug("Downloading Python module at URL {}", pyModule);
             try {
                 Utils.downloadResource(pyModule, outputDir);
 

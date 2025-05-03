@@ -70,7 +70,7 @@ public class InitPy implements Translatable {
     public void saveToFolder(Path outputFolderPath) {
         Path fullPath = outputFolderPath.resolve(path);
 
-        logger.debug("Saving __init__.py for folder '{}'...", fullPath);
+        logger.debug("Saving __init__.py for package '{}'...", path);
 
         try {
             Files.createDirectories(fullPath);
@@ -81,7 +81,7 @@ public class InitPy implements Translatable {
                 writer.write(translate());
             }
         } catch (IOException e) {
-            logger.error("Error when saving __init__.py for folder '" + fullPath + "'", e);
+            logger.error("Error when saving __init__.py for package '{}'", path, e);
         }
     }
 }

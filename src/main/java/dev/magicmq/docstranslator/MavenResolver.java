@@ -52,7 +52,7 @@ public class MavenResolver {
         this.remoteRepositories = new ArrayList<>();
         if (useCentral)
             this.remoteRepositories.add(new RemoteRepository.Builder(
-                    "maven",
+                    "central",
                     "default",
                     "https://repo.maven.apache.org/maven2/").build());
 
