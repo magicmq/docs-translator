@@ -63,7 +63,7 @@ public class MavenResolver {
         this.remoteRepositories.add(new RemoteRepository.Builder(id, "default", url).build());
     }
 
-    public List<Artifact> fetch(List<String> artifacts) {
+    public List<Artifact> fetch(List<String> artifacts, List<String> exclusions) {
         List<Artifact> toReturn = new ArrayList<>();
 
         for (String artifact : artifacts) {
@@ -76,7 +76,10 @@ public class MavenResolver {
                 DependencyRequest dependencyRequest = new DependencyRequest(collectRequest, null);
                 DependencyResult dependencyResult = system.resolveDependencies(session, dependencyRequest);
 
-                List<Artifact> allArtifacts = dependencyResult.getArtifactResults().stream().map(ArtifactResult::getArtifact).toList();
+                List<Artifact> allArtifacts = new ArrayList<>(dependencyResult.getArtifactResults().stream().map(ArtifactResult::getArtifact).toList());
+
+                allArtifacts.removeIf(toCheck ->
+                        exclusions.contains(toCheck.getGroupId() + ":" + toCheck.getArtifactId()) || exclusions.contains(toCheck.getGroupId()));
 
                 toReturn.addAll(fetchDependencies(allArtifacts));
             } catch (DependencyResolutionException e) {

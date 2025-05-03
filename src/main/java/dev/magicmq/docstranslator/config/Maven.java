@@ -26,6 +26,7 @@ public class Maven {
     private List<Repository> repositories;
     private boolean deleteOnStart;
     private List<String> artifacts;
+    private List<String> excludeArtifacts;
     private String dependencyScope;
 
     public String getPath() {
@@ -66,6 +67,14 @@ public class Maven {
 
     public void setArtifacts(List<String> artifacts) {
         this.artifacts = artifacts;
+    }
+
+    public List<String> getExcludeArtifacts() {
+        return excludeArtifacts;
+    }
+
+    public void setExcludeArtifacts(List<String> excludeArtifacts) {
+        this.excludeArtifacts = excludeArtifacts;
     }
 
     public String getDependencyScope() {

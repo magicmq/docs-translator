@@ -95,7 +95,7 @@ public class DocsTranslator {
             resolver.addRemoteRepository(repository.getId(), repository.getUrl());
         }
 
-        return resolver.fetch(SettingsProvider.get().getSettings().getMaven().getArtifacts());
+        return resolver.fetch(SettingsProvider.get().getSettings().getMaven().getArtifacts(), SettingsProvider.get().getSettings().getMaven().getExcludeArtifacts());
     }
 
     public static void main(String[] args) {

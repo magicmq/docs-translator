@@ -80,6 +80,9 @@ Options pertaining to fetching the JAR file (and its dependencies) to be transla
 - `repositories`: A list of remote repositories to be searched for the listed artifacts to translate (and its dependencies). Each item in the list should contain an `id` to identify it and a `url` pointing to the location of the remote repository.
 - `deleteOnStart`: If set to `true`, the folder containing the local Maven repository will be deleted when DocsTranslator first runs.
 - `artifacts`: A list of artifacts (in the format `groupId:artifactId:version`) to fetch and translate.
+- `excludeArtifacts`: A list of artifacts to exclude. Useful for excluding dependency artifacts from translation.
+  - Use the format `groupId:artifactId` to exclude a single artifact
+  - Use the format `groupId` to exclude all artifacts under a particular group
 - `dependencyScope`: The [scope](https://maven.apache.org/guides/introduction/introduction-to-dependency-mechanism.html#Dependency_Scope) to use to limit transitivity when fetching dependencies of an artifact.
 
 ### `jdkSources`:
