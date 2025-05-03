@@ -17,10 +17,14 @@
 package dev.magicmq.docstranslator.members;
 
 
-import com.github.javaparser.ast.body.*;
+import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.ast.body.EnumConstantDeclaration;
+import com.github.javaparser.ast.body.EnumDeclaration;
+import com.github.javaparser.ast.body.FieldDeclaration;
+import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.comments.JavadocComment;
 import com.github.javaparser.javadoc.Javadoc;
-import dev.magicmq.docstranslator.DocsTranslator;
+import dev.magicmq.docstranslator.SettingsProvider;
 import dev.magicmq.docstranslator.module.Module;
 import dev.magicmq.docstranslator.utils.FunctionUtils;
 import dev.magicmq.docstranslator.utils.StringUtils;
@@ -107,7 +111,7 @@ public class Enum extends Member {
     public String translate() {
         StringBuilder builder = new StringBuilder();
 
-        String declaration = DocsTranslator.get().getSettings().getFormats().getEnum().getDeclaration().replace("%name%", name);
+        String declaration = SettingsProvider.get().getSettings().getFormats().getEnum().getDeclaration().replace("%name%", name);
         builder.append(StringUtils.indent(declaration, indent));
 
         if (docString != null) {

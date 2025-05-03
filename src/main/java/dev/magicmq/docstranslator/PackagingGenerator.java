@@ -17,7 +17,8 @@
 package dev.magicmq.docstranslator;
 
 
-import dev.magicmq.docstranslator.config.Settings;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedWriter;
@@ -30,19 +31,17 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class PackagingGenerator {
 
+    private static final Logger logger = LoggerFactory.getLogger(PackagingGenerator.class);
     private static final Pattern classifierPattern = Pattern.compile("( *)%classifiers%");
 
-    private final Settings settings;
     private final Path outputDir;
 
-    public PackagingGenerator(Settings settings, Path outputDir) {
-        this.settings = settings;
+    public PackagingGenerator(Path outputDir) {
         this.outputDir = outputDir;
     }
 
@@ -54,17 +53,18 @@ public class PackagingGenerator {
     }
 
     private void generateSetupPy() throws IOException {
-        String setup = settings.getFormats().getPackaging().getSetup();
+        String setup = SettingsProvider.get().getSettings().getFormats().getPackaging().getSetup();
 
         List<String> pyModules;
-        if (settings.getPackaging().getSetup().getPyModules() != null) {
-            pyModules = settings.getPackaging().getSetup().getPyModules();
+        if (SettingsProvider.get().getSettings().getPackaging().getSetup().getPyModules() != null) {
+            pyModules = SettingsProvider.get().getSettings().getPackaging().getSetup().getPyModules();
         } else {
             pyModules = Collections.emptyList();
         }
 
         List<String> pyModuleNames = new ArrayList<>();
         for (String pyModule : pyModules) {
+            logger.debug("Downloading python module at URL {}", pyModule);
             try {
                 Utils.downloadResource(pyModule, outputDir);
 
@@ -72,27 +72,26 @@ public class PackagingGenerator {
                 String moduleName = fileName.substring(0, fileName.length() - 3);
                 pyModuleNames.add("'" + moduleName + "'");
             } catch (IOException e) {
-                DocsTranslator.get().getLogger().log(Level.SEVERE, "Error when downloading python module at URL " + pyModule, e);
-                e.printStackTrace();
+                logger.error("Error when downloading python module at URL {}", pyModule, e);
             }
         }
 
         Matcher matcher = classifierPattern.matcher(setup);
         String spaces = matcher.find() ? matcher.group(1) : "";
-        List<String> classifiers = settings.getPackaging().getSetup().getClassifiers()
+        List<String> classifiers = SettingsProvider.get().getSettings().getPackaging().getSetup().getClassifiers()
                 .stream()
                 .map(string -> "'" + string + "'")
                 .toList();
 
         setup = setup
-                .replace("%name%", settings.getPackaging().getSetup().getName())
-                .replace("%version%", settings.getPackaging().getSetup().getVersion())
-                .replace("%author%", settings.getPackaging().getSetup().getAuthor())
-                .replace("%author_email%", settings.getPackaging().getSetup().getAuthorEmail())
-                .replace("%description%", settings.getPackaging().getSetup().getDescription())
-                .replace("%url%", settings.getPackaging().getSetup().getUrl())
+                .replace("%name%", SettingsProvider.get().getSettings().getPackaging().getSetup().getName())
+                .replace("%version%", SettingsProvider.get().getSettings().getPackaging().getSetup().getVersion())
+                .replace("%author%", SettingsProvider.get().getSettings().getPackaging().getSetup().getAuthor())
+                .replace("%author_email%", SettingsProvider.get().getSettings().getPackaging().getSetup().getAuthorEmail())
+                .replace("%description%", SettingsProvider.get().getSettings().getPackaging().getSetup().getDescription())
+                .replace("%url%", SettingsProvider.get().getSettings().getPackaging().getSetup().getUrl())
                 .replace("%py_modules%", String.join(", ", pyModuleNames))
-                .replace("%python_requires%", settings.getPackaging().getSetup().getPythonRequires())
+                .replace("%python_requires%", SettingsProvider.get().getSettings().getPackaging().getSetup().getPythonRequires())
                 .replace("%classifiers%", String.join(",\n" + spaces, classifiers));
 
         Path setupPyPath = outputDir.resolve("setup.py");
@@ -102,15 +101,15 @@ public class PackagingGenerator {
     }
 
     private void generatePyProject() throws IOException {
-        List<String> requires = settings.getPackaging().getPyProject().getRequires()
+        List<String> requires = SettingsProvider.get().getSettings().getPackaging().getPyProject().getRequires()
                 .stream()
                 .map(string -> "\"" + string + "\"")
                 .toList();
 
-        String pyProject = settings.getFormats().getPackaging().getPyProject();
+        String pyProject = SettingsProvider.get().getSettings().getFormats().getPackaging().getPyProject();
         pyProject = pyProject
                 .replace("%requires%", String.join(", ", requires))
-                .replace("%build_backend%", settings.getPackaging().getPyProject().getBuildBackend());
+                .replace("%build_backend%", SettingsProvider.get().getSettings().getPackaging().getPyProject().getBuildBackend());
 
         Path pyProjectPath = outputDir.resolve("pyproject.toml");
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(pyProjectPath.toFile()))) {
@@ -119,7 +118,7 @@ public class PackagingGenerator {
     }
 
     private void generateManifest() throws IOException {
-        String manifest = String.join("\n", settings.getPackaging().getManifest());
+        String manifest = String.join("\n", SettingsProvider.get().getSettings().getPackaging().getManifest());
 
         Path manifestPath = outputDir.resolve("MANIFEST.in");
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(manifestPath.toFile()))) {
@@ -130,7 +129,7 @@ public class PackagingGenerator {
     private void saveLicense() throws IOException {
         Path savePath = outputDir.resolve("LICENSE");
 
-        try (InputStream inputStream = new BufferedInputStream(new URL(settings.getPackaging().getLicense()).openStream());
+        try (InputStream inputStream = new BufferedInputStream(new URL(SettingsProvider.get().getSettings().getPackaging().getLicense()).openStream());
              FileOutputStream out = new FileOutputStream(savePath.toFile())) {
 
             byte[] buffer = new byte[1024];

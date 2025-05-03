@@ -20,7 +20,7 @@ package dev.magicmq.docstranslator.members;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.comments.JavadocComment;
 import com.github.javaparser.javadoc.Javadoc;
-import dev.magicmq.docstranslator.DocsTranslator;
+import dev.magicmq.docstranslator.SettingsProvider;
 import dev.magicmq.docstranslator.doc.DocString;
 import dev.magicmq.docstranslator.utils.StringUtils;
 import dev.magicmq.docstranslator.utils.TypeUtils;
@@ -57,11 +57,11 @@ public class Function extends Member {
             parameters.add("self");
         methodDeclaration.getParameters().forEach(param -> {
             if (param.isVarArgs()) {
-                parameters.add(DocsTranslator.get().getSettings().getFormats().getFunction().getParameterVararg()
+                parameters.add(SettingsProvider.get().getSettings().getFormats().getFunction().getParameterVararg()
                         .replace("%name%", param.getNameAsString())
                         .replace("%type%", TypeUtils.convertType(param.getType())));
             } else {
-                parameters.add(DocsTranslator.get().getSettings().getFormats().getFunction().getParameterRegular()
+                parameters.add(SettingsProvider.get().getSettings().getFormats().getFunction().getParameterRegular()
                         .replace("%name%", param.getNameAsString())
                         .replace("%type%", TypeUtils.convertType(param.getType())));
             }
@@ -85,7 +85,7 @@ public class Function extends Member {
         }
 
         String params = String.join(", ", parameters);
-        String def = DocsTranslator.get().getSettings().getFormats().getFunction().getDefinition()
+        String def = SettingsProvider.get().getSettings().getFormats().getFunction().getDefinition()
                 .replace("%name%", methodName)
                 .replace("%params%", params)
                 .replace("%returns%", returnType);
@@ -98,7 +98,7 @@ public class Function extends Member {
             builder.append("\n");
         }
 
-        builder.append(StringUtils.indent(DocsTranslator.get().getSettings().getFormats().getFunction().getReturnRegular(), indent + 4));
+        builder.append(StringUtils.indent(SettingsProvider.get().getSettings().getFormats().getFunction().getReturnRegular(), indent + 4));
 
         return builder.toString();
     }

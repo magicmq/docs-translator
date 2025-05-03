@@ -24,10 +24,10 @@ import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.EnumDeclaration;
 import com.github.javaparser.ast.body.TypeDeclaration;
 import com.github.javaparser.ast.expr.Name;
-import dev.magicmq.docstranslator.DocsTranslator;
 import dev.magicmq.docstranslator.JdkTranslator;
-import dev.magicmq.docstranslator.members.Annotation;
+import dev.magicmq.docstranslator.SettingsProvider;
 import dev.magicmq.docstranslator.base.Translatable;
+import dev.magicmq.docstranslator.members.Annotation;
 import dev.magicmq.docstranslator.members.Class;
 import dev.magicmq.docstranslator.members.Enum;
 import dev.magicmq.docstranslator.members.Member;
@@ -69,11 +69,11 @@ public class Module implements Translatable {
             String className = name.getIdentifier();
 
             if (imp.isAsterisk()) {
-                if (!DocsTranslator.get().getSettings().getImportExclusions().getClasses().contains(name.asString()) && !DocsTranslator.get().getSettings().getImportExclusions().getPackages().contains(packageName + "." + className)) {
+                if (!SettingsProvider.get().getSettings().getImportExclusions().getClasses().contains(name.asString()) && !SettingsProvider.get().getSettings().getImportExclusions().getPackages().contains(packageName + "." + className)) {
                     this.imports.add(new Import(name.asString(), "*"));
                 }
             } else {
-                if (!DocsTranslator.get().getSettings().getImportExclusions().getClasses().contains(name.asString()) && !DocsTranslator.get().getSettings().getImportExclusions().getPackages().contains(packageName)) {
+                if (!SettingsProvider.get().getSettings().getImportExclusions().getClasses().contains(name.asString()) && !SettingsProvider.get().getSettings().getImportExclusions().getPackages().contains(packageName)) {
                     if (name.asString().startsWith("java.") && !this.packageName.startsWith("java."))
                         javaTranslator.addSourceFile(packageName, className);
 
@@ -117,7 +117,7 @@ public class Module implements Translatable {
     public String translate() {
         StringBuilder builder = new StringBuilder();
 
-        builder.append(DocsTranslator.get().getSettings().getFormats().getModule().getDocString()
+        builder.append(SettingsProvider.get().getSettings().getFormats().getModule().getDocString()
                 .replace("%class%", packageName + "." + moduleName)
                 .replace("%group_id%", groupId)
                 .replace("%artifact_id%", artifactId)

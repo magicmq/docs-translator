@@ -22,6 +22,8 @@ import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.nodeTypes.NodeWithName;
 import dev.magicmq.docstranslator.module.Module;
 import dev.magicmq.docstranslator.module.init.InitPyRegistry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -30,9 +32,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
 
 public class JdkTranslator {
+
+    private static final Logger logger = LoggerFactory.getLogger(JdkTranslator.class);
 
     private final Path javaSourcesPath;
     private final Path outputFolder;
@@ -63,18 +66,15 @@ public class JdkTranslator {
 
                 Path absoluteSourcePath = javaSourcesPath.resolve(sourceFilePath);
 
-                DocsTranslator.get().getLogger().log(Level.FINE, "Processing JDK source file '" + sourceFileName + "'");
+                logger.debug("Processing JDK source file '{}'", sourceFileName);
 
                 registry.getInitPyAt(parentPath).addImport(className);
 
                 String translated = translateSource(absoluteSourcePath, className);
                 Path outputFilePath = outputFolder.resolve(sourceFilePath.getParent()).resolve(className + ".py");
                 saveTranslatedFile(outputFilePath, translated);
-
-                DocsTranslator.get().getLogger().log(Level.FINE, "Finished processing JDK source file '" + sourceFileName + "'");
             } catch (IOException e) {
-                DocsTranslator.get().getLogger().log(Level.SEVERE, "Error when processing JDK source file '" + sourceFilePath.getFileName().toString() + "'");
-                e.printStackTrace();
+                logger.error("Error when processing JDK source file '{}'", sourceFilePath.getFileName().toString(), e);
             }
         }
     }
@@ -89,9 +89,9 @@ public class JdkTranslator {
                 .orElse("");
 
         Module module = new Module(
-                DocsTranslator.get().getSettings().getJdkSources().getGroup(),
-                DocsTranslator.get().getSettings().getJdkSources().getName(),
-                DocsTranslator.get().getSettings().getJdkSources().getVersion(),
+                SettingsProvider.get().getSettings().getJdkSources().getGroup(),
+                SettingsProvider.get().getSettings().getJdkSources().getName(),
+                SettingsProvider.get().getSettings().getJdkSources().getVersion(),
                 packageName,
                 className,
                 this
@@ -107,8 +107,7 @@ public class JdkTranslator {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputFilePath.toFile()))) {
             writer.write(text);
         } catch (IOException e) {
-            DocsTranslator.get().getLogger().log(Level.SEVERE, "Error when saving file '" + outputFilePath.getFileName().toString() + "' to output folder", e);
-            e.printStackTrace();
+            logger.error("Error when saving file '{}' to output folder", outputFilePath.getFileName().toString(), e);
         }
     }
 

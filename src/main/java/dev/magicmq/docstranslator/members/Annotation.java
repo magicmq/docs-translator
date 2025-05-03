@@ -22,7 +22,7 @@ import com.github.javaparser.ast.body.AnnotationMemberDeclaration;
 import com.github.javaparser.ast.body.BodyDeclaration;
 import com.github.javaparser.ast.comments.JavadocComment;
 import com.github.javaparser.javadoc.Javadoc;
-import dev.magicmq.docstranslator.DocsTranslator;
+import dev.magicmq.docstranslator.SettingsProvider;
 import dev.magicmq.docstranslator.module.Module;
 import dev.magicmq.docstranslator.utils.StringUtils;
 
@@ -63,7 +63,7 @@ public class Annotation extends Member {
     public String translate() {
         StringBuilder builder = new StringBuilder();
 
-        String replaced = DocsTranslator.get().getSettings().getFormats().getClass_().getDeclaration().replace("%name%", name);
+        String replaced = SettingsProvider.get().getSettings().getFormats().getClass_().getDeclaration().replace("%name%", name);
         String declaration = StringUtils.indent(replaced, indent);
         builder.append(declaration);
 

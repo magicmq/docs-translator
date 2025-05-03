@@ -20,7 +20,7 @@ package dev.magicmq.docstranslator.members;
 import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.comments.JavadocComment;
 import com.github.javaparser.javadoc.Javadoc;
-import dev.magicmq.docstranslator.DocsTranslator;
+import dev.magicmq.docstranslator.SettingsProvider;
 import dev.magicmq.docstranslator.doc.DocString;
 import dev.magicmq.docstranslator.utils.StringUtils;
 import dev.magicmq.docstranslator.utils.TypeUtils;
@@ -50,11 +50,11 @@ public class InitFunction extends Member {
         parameters.add("self");
         constructorDeclaration.getParameters().forEach(param -> {
             if (param.isVarArgs()) {
-                parameters.add(DocsTranslator.get().getSettings().getFormats().getFunction().getParameterVararg()
+                parameters.add(SettingsProvider.get().getSettings().getFormats().getFunction().getParameterVararg()
                         .replace("%name%", param.getNameAsString())
                         .replace("%type%", TypeUtils.convertType(param.getType())));
             } else {
-                parameters.add(DocsTranslator.get().getSettings().getFormats().getFunction().getParameterRegular()
+                parameters.add(SettingsProvider.get().getSettings().getFormats().getFunction().getParameterRegular()
                         .replace("%name%", param.getNameAsString())
                         .replace("%type%", TypeUtils.convertType(param.getType())));
             }
@@ -73,7 +73,7 @@ public class InitFunction extends Member {
         }
 
         String params = String.join(", ", parameters);
-        String def = DocsTranslator.get().getSettings().getFormats().getFunction().getInitDefinition().replace("%params%", params);
+        String def = SettingsProvider.get().getSettings().getFormats().getFunction().getInitDefinition().replace("%params%", params);
         builder.append(StringUtils.indent(def, indent));
 
         builder.append("\n");
@@ -83,7 +83,7 @@ public class InitFunction extends Member {
             builder.append("\n");
         }
 
-        builder.append(StringUtils.indent(DocsTranslator.get().getSettings().getFormats().getFunction().getReturnRegular(), indent + 4));
+        builder.append(StringUtils.indent(SettingsProvider.get().getSettings().getFormats().getFunction().getReturnRegular(), indent + 4));
 
         return builder.toString();
     }

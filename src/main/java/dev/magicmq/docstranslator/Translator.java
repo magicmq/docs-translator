@@ -23,14 +23,22 @@ import com.github.javaparser.ast.nodeTypes.NodeWithName;
 import dev.magicmq.docstranslator.module.Module;
 import dev.magicmq.docstranslator.module.init.InitPyRegistry;
 import org.eclipse.aether.artifact.Artifact;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.io.*;
-import java.nio.file.*;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.stream.Stream;
 
 public class Translator {
+
+    private static final Logger logger = LoggerFactory.getLogger(Translator.class);
 
     private final List<Artifact> artifacts;
     private final Path outputFolder;
@@ -45,7 +53,10 @@ public class Translator {
     }
 
     public void translate() throws IOException {
+        logger.info("Translating sources...");
         for (Artifact artifact : artifacts) {
+            logger.info("Translating sources for artifact {}", artifact);
+
             Path jarFilePath = artifact.getFile().toPath();
 
             String groupId = artifact.getGroupId();
@@ -61,12 +72,12 @@ public class Translator {
             }
         }
 
-        if (DocsTranslator.get().getSettings().getJdkSources().isTranslate()) {
-            DocsTranslator.get().getLogger().log(Level.INFO, "Translating JDK sources...");
+        if (SettingsProvider.get().getSettings().getJdkSources().isTranslate()) {
+            logger.info("Translating JDK sources...");
             jdkTranslator.translateSources();
         }
 
-        DocsTranslator.get().getLogger().log(Level.INFO, "Saving __init__.py files...");
+        logger.info("Saving __init__.py files...");
         registry.saveInitPys(outputFolder);
     }
 
@@ -84,19 +95,16 @@ public class Translator {
                             Path parentPath = physicalPath.getParent();
                             generateInitPy(parentPath);
 
-                            DocsTranslator.get().getLogger().log(Level.FINE, "Processing source file '" + sourceFileName + "'");
+                            logger.debug("Processing source file '{}'", sourceFileName);
 
                             registry.getInitPyAt(parentPath).addImport(className);
 
                             String translated = translateSource(path, groupId, artifactId, artifactVersion, className);
                             Path outputFilePath = outputFolder.resolve(physicalPath.getParent()).resolve(className + ".py");
                             saveTranslatedFile(outputFilePath, translated);
-
-                            DocsTranslator.get().getLogger().log(Level.FINE, "Finished processing source file '" + sourceFileName + "'");
                         }
                     } catch (IOException e) {
-                        DocsTranslator.get().getLogger().log(Level.SEVERE, "Error when processing source file '" + path.getFileName().toString() + "'", e);
-                        e.printStackTrace();
+                        logger.error("Error when processing source file '{}'", path.getFileName().toString(), e);
                     }
         });
     }
@@ -129,8 +137,7 @@ public class Translator {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputFilePath.toFile()))) {
             writer.write(text);
         } catch (IOException e) {
-            DocsTranslator.get().getLogger().log(Level.SEVERE, "Error when saving file '" + outputFilePath.getFileName().toString() + "' to output folder", e);
-            e.printStackTrace();
+            logger.error("Error when saving file '{}' to output folder", outputFilePath.getFileName().toString(), e);
         }
     }
 

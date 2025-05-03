@@ -17,7 +17,11 @@
 package dev.magicmq.docstranslator.utils;
 
 
-import com.github.javaparser.ast.type.*;
+import com.github.javaparser.ast.type.ArrayType;
+import com.github.javaparser.ast.type.ClassOrInterfaceType;
+import com.github.javaparser.ast.type.PrimitiveType;
+import com.github.javaparser.ast.type.Type;
+import com.github.javaparser.ast.type.WildcardType;
 
 public final class TypeUtils {
 

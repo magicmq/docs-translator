@@ -22,7 +22,7 @@ import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.comments.JavadocComment;
 import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.javadoc.Javadoc;
-import dev.magicmq.docstranslator.DocsTranslator;
+import dev.magicmq.docstranslator.SettingsProvider;
 import dev.magicmq.docstranslator.utils.StringUtils;
 import dev.magicmq.docstranslator.utils.TypeUtils;
 
@@ -45,7 +45,7 @@ public class Field extends Member {
             String fieldName = declarator.getNameAsString();
             Expression initializer = declarator.getInitializer().orElse(null);
             String fieldValue = initializer != null ? TypeUtils.convertValue(initializer.toString()) : "None";
-            String replaced = DocsTranslator.get().getSettings().getFormats().getField().getInitializer()
+            String replaced = SettingsProvider.get().getSettings().getFormats().getField().getInitializer()
                     .replace("%name%", fieldName)
                     .replace("%value%", fieldValue);
 

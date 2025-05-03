@@ -17,9 +17,9 @@
 package dev.magicmq.docstranslator.members;
 
 
-import dev.magicmq.docstranslator.doc.DocString;
 import dev.magicmq.docstranslator.base.Indented;
 import dev.magicmq.docstranslator.base.Translatable;
+import dev.magicmq.docstranslator.doc.DocString;
 
 public abstract class Member extends Indented implements Translatable {
 

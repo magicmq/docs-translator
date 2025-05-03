@@ -18,13 +18,16 @@ import org.eclipse.aether.resolution.ArtifactResult;
 import org.eclipse.aether.resolution.DependencyRequest;
 import org.eclipse.aether.resolution.DependencyResolutionException;
 import org.eclipse.aether.resolution.DependencyResult;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
 
 public class MavenResolver {
+
+    private static final Logger logger = LoggerFactory.getLogger(MavenResolver.class);
 
     private final RepositorySystem system;
     private final RepositorySystemSession session;
@@ -77,7 +80,7 @@ public class MavenResolver {
 
                 toReturn.addAll(fetchDependencies(allArtifacts));
             } catch (DependencyResolutionException e) {
-                DocsTranslator.get().getLogger().log(Level.SEVERE, "Error when resolving dependencies for artifact '" + artifact + "'. Skipping...", e);
+                logger.error("Error when resolving dependencies for artifact '{}'. Skipping...", artifact, e);
             }
         }
 
@@ -99,9 +102,9 @@ public class MavenResolver {
                 sourcesRequest.setArtifact(sourcesArtifact);
                 sourcesRequest.setRepositories(remoteRepositories);
                 sourceResults.add(system.resolveArtifact(session, sourcesRequest).getArtifact());
-                DocsTranslator.get().getLogger().log(Level.INFO, "Fetched JAR artifact " + artifact);
+                logger.info("Fetched JAR artifact {}", artifact);
             } catch (ArtifactResolutionException e) {
-                DocsTranslator.get().getLogger().log(Level.WARNING, "Error when resolving dependency artifact '" + artifact + "'. Skipping...", e);
+                logger.error("Error when resolving dependency artifact '{}'. Skipping...", artifact, e);
             }
         }
         return sourceResults;

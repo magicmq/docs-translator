@@ -17,11 +17,15 @@
 package dev.magicmq.docstranslator.members;
 
 
-import com.github.javaparser.ast.body.*;
+import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.ast.body.ConstructorDeclaration;
+import com.github.javaparser.ast.body.EnumDeclaration;
+import com.github.javaparser.ast.body.FieldDeclaration;
+import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.comments.JavadocComment;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.javadoc.Javadoc;
-import dev.magicmq.docstranslator.DocsTranslator;
+import dev.magicmq.docstranslator.SettingsProvider;
 import dev.magicmq.docstranslator.module.Module;
 import dev.magicmq.docstranslator.utils.FunctionUtils;
 import dev.magicmq.docstranslator.utils.StringUtils;
@@ -117,10 +121,10 @@ public class Class extends Member {
 
         String declaration;
         if (extendedClasses.isEmpty()) {
-            String replaced = DocsTranslator.get().getSettings().getFormats().getClass_().getDeclaration().replace("%name%", name);
+            String replaced = SettingsProvider.get().getSettings().getFormats().getClass_().getDeclaration().replace("%name%", name);
             declaration = StringUtils.indent(replaced, indent);
         } else {
-            String replaced = DocsTranslator.get().getSettings().getFormats().getClass_().getDeclarationExtending()
+            String replaced = SettingsProvider.get().getSettings().getFormats().getClass_().getDeclarationExtending()
                     .replace("%name%", name)
                     .replace("%extends%", String.join(", ", extendedClasses));
             declaration = StringUtils.indent(replaced, indent);

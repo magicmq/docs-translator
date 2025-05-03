@@ -71,12 +71,6 @@ The `settings.yml` file is the main configuration file for the project. If a `se
 
 Options are outlined below.
 
-### `general`:
-
-General options.
-
-- `loggingLevel`: The mimum logging level for a message to be logged to console and to the `output.log` file.
-
 ### `maven`:
 
 Options pertaining to fetching the JAR file (and its dependencies) to be translated. Downloaded JARs are placed into a local Maven repository.

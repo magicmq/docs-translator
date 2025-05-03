@@ -17,10 +17,11 @@
 package dev.magicmq.docstranslator.module.init;
 
 
-import dev.magicmq.docstranslator.DocsTranslator;
 import dev.magicmq.docstranslator.base.Translatable;
 import dev.magicmq.docstranslator.module.Import;
 import dev.magicmq.docstranslator.utils.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -29,10 +30,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 public class InitPy implements Translatable {
+
+    private static final Logger logger = LoggerFactory.getLogger(InitPy.class);
 
     private final Path path;
     private final List<Import> imports;
@@ -67,6 +69,9 @@ public class InitPy implements Translatable {
 
     public void saveToFolder(Path outputFolderPath) {
         Path fullPath = outputFolderPath.resolve(path);
+
+        logger.debug("Saving __init__.py for folder '{}'...", fullPath);
+
         try {
             Files.createDirectories(fullPath);
 
@@ -75,10 +80,8 @@ public class InitPy implements Translatable {
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputFilePath.toFile()))) {
                 writer.write(translate());
             }
-
-            DocsTranslator.get().getLogger().log(Level.FINE, "Saved __init__.py for folder '" + fullPath + "'");
         } catch (IOException e) {
-            DocsTranslator.get().getLogger().log(Level.SEVERE, "Error when saving __init__.py to folder '" + fullPath + "'", e);
+            logger.error("Error when saving __init__.py for folder '" + fullPath + "'", e);
         }
     }
 }

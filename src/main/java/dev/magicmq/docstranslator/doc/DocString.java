@@ -21,7 +21,7 @@ import com.github.javaparser.javadoc.Javadoc;
 import com.github.javaparser.javadoc.JavadocBlockTag;
 import com.github.javaparser.javadoc.description.JavadocDescriptionElement;
 import com.github.javaparser.javadoc.description.JavadocInlineTag;
-import dev.magicmq.docstranslator.DocsTranslator;
+import dev.magicmq.docstranslator.SettingsProvider;
 import dev.magicmq.docstranslator.base.Indented;
 import dev.magicmq.docstranslator.utils.StringUtils;
 
@@ -138,13 +138,13 @@ public class DocString extends Indented {
         Matcher matcher = TYPE_PARAMETER_PATTERN.matcher(param);
         if (matcher.find()) {
             String typeChar = matcher.group(0);
-            addToDescription(DocsTranslator.get().getSettings().getFormats().getDocString().getTypeParam()
+            addToDescription(SettingsProvider.get().getSettings().getFormats().getDocString().getTypeParam()
                     .replace("%type%", typeChar)
                     .replace("%text%", text));
             return;
         }
 
-        this.params.add(DocsTranslator.get().getSettings().getFormats().getDocString().getParam()
+        this.params.add(SettingsProvider.get().getSettings().getFormats().getDocString().getParam()
                 .replace("%param%", param)
                 .replace("%text%", text));
     }
@@ -174,7 +174,7 @@ public class DocString extends Indented {
     }
 
     public void addThrows(String throwz, String text) {
-        this.throwz.add(DocsTranslator.get().getSettings().getFormats().getDocString().getThrow()
+        this.throwz.add(SettingsProvider.get().getSettings().getFormats().getDocString().getThrow()
                 .replace("%exception%", throwz)
                 .replace("%text%", text));
     }
@@ -184,7 +184,7 @@ public class DocString extends Indented {
     }
 
     public void addUnknown(String tag, String unknown) {
-        this.unknown.add(DocsTranslator.get().getSettings().getFormats().getDocString().getUnknownTag()
+        this.unknown.add(SettingsProvider.get().getSettings().getFormats().getDocString().getUnknownTag()
                 .replace("%tag%", tag)
                 .replace("%text%", unknown));
     }
@@ -205,7 +205,7 @@ public class DocString extends Indented {
         if (author != null) {
             if (contentAdded)
                 builder.append("\n\n");
-            builder.append(StringUtils.indent(DocsTranslator.get().getSettings().getFormats().getDocString().getAuthor()
+            builder.append(StringUtils.indent(SettingsProvider.get().getSettings().getFormats().getDocString().getAuthor()
                     .replace("%text%", author), indent));
             contentAdded = true;
         }
@@ -213,7 +213,7 @@ public class DocString extends Indented {
         if (version != null) {
             if (contentAdded)
                 builder.append("\n\n");
-            builder.append(StringUtils.indent(DocsTranslator.get().getSettings().getFormats().getDocString().getVersion()
+            builder.append(StringUtils.indent(SettingsProvider.get().getSettings().getFormats().getDocString().getVersion()
                     .replace("%text%", version), indent));
             builder.append(" ");
             builder.append(version);
@@ -223,7 +223,7 @@ public class DocString extends Indented {
         if (since != null) {
             if (contentAdded)
                 builder.append("\n\n");
-            builder.append(StringUtils.indent(DocsTranslator.get().getSettings().getFormats().getDocString().getSince()
+            builder.append(StringUtils.indent(SettingsProvider.get().getSettings().getFormats().getDocString().getSince()
                     .replace("%text%", since), indent));
             contentAdded = true;
         }
@@ -231,7 +231,7 @@ public class DocString extends Indented {
         if (!serial.isEmpty()) {
             if (contentAdded)
                 builder.append("\n\n");
-            builder.append(StringUtils.indent(DocsTranslator.get().getSettings().getFormats().getDocString().getSerial()
+            builder.append(StringUtils.indent(SettingsProvider.get().getSettings().getFormats().getDocString().getSerial()
                     .replace("%text%", String.join(", ", serial)), indent));
             contentAdded = true;
         }
@@ -239,7 +239,7 @@ public class DocString extends Indented {
         if (!serialData.isEmpty()) {
             if (contentAdded)
                 builder.append("\n\n");
-            builder.append(StringUtils.indent(DocsTranslator.get().getSettings().getFormats().getDocString().getSerialData()
+            builder.append(StringUtils.indent(SettingsProvider.get().getSettings().getFormats().getDocString().getSerialData()
                     .replace("%text%", String.join(", ", serialData)), indent));
             contentAdded = true;
         }
@@ -247,7 +247,7 @@ public class DocString extends Indented {
         if (!serialField.isEmpty()) {
             if (contentAdded)
                 builder.append("\n\n");
-            builder.append(StringUtils.indent(DocsTranslator.get().getSettings().getFormats().getDocString().getSerialField()
+            builder.append(StringUtils.indent(SettingsProvider.get().getSettings().getFormats().getDocString().getSerialField()
                     .replace("%text%", String.join(", ", serialField)), indent));
             contentAdded = true;
         }
@@ -255,7 +255,7 @@ public class DocString extends Indented {
         if (!unknown.isEmpty()) {
             if (contentAdded)
                 builder.append("\n\n");
-            builder.append(StringUtils.indent(DocsTranslator.get().getSettings().getFormats().getDocString().getUnknown(), indent));
+            builder.append(StringUtils.indent(SettingsProvider.get().getSettings().getFormats().getDocString().getUnknown(), indent));
             builder.append("\n");
             builder.append(StringUtils.indent(String.join("\n", unknown), indent));
         }
@@ -270,7 +270,7 @@ public class DocString extends Indented {
         if (returns != null) {
             if (contentAdded)
                 builder.append("\n\n");
-            builder.append(StringUtils.indent(DocsTranslator.get().getSettings().getFormats().getDocString().getReturn()
+            builder.append(StringUtils.indent(SettingsProvider.get().getSettings().getFormats().getDocString().getReturn()
                     .replace("%text%", returns), indent));
             contentAdded = true;
         }
@@ -285,7 +285,7 @@ public class DocString extends Indented {
         if (see != null) {
             if (contentAdded)
                 builder.append("\n\n");
-            builder.append(StringUtils.indent(DocsTranslator.get().getSettings().getFormats().getDocString().getSee()
+            builder.append(StringUtils.indent(SettingsProvider.get().getSettings().getFormats().getDocString().getSee()
                     .replace("%text%", see), indent));
             contentAdded = true;
         }
@@ -293,7 +293,7 @@ public class DocString extends Indented {
         if (deprecated != null) {
             if (contentAdded)
                 builder.append("\n\n");
-            builder.append(StringUtils.indent(DocsTranslator.get().getSettings().getFormats().getDocString().getDeprecated()
+            builder.append(StringUtils.indent(SettingsProvider.get().getSettings().getFormats().getDocString().getDeprecated()
                     .replace("%text%", deprecated), indent));
         }
 

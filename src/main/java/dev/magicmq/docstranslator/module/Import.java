@@ -17,7 +17,7 @@
 package dev.magicmq.docstranslator.module;
 
 
-import dev.magicmq.docstranslator.DocsTranslator;
+import dev.magicmq.docstranslator.SettingsProvider;
 
 public record Import(String packageName, String className) implements Comparable<Import> {
 
@@ -32,7 +32,7 @@ public record Import(String packageName, String className) implements Comparable
 
     @Override
     public String toString() {
-        return DocsTranslator.get().getSettings().getFormats().getModule().getImportDeclaration()
+        return SettingsProvider.get().getSettings().getFormats().getModule().getImportDeclaration()
                 .replace("%package%", this.packageName)
                 .replace("%module%", this.className);
     }

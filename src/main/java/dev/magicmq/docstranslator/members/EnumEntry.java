@@ -21,7 +21,7 @@ import com.github.javaparser.ast.body.EnumConstantDeclaration;
 import com.github.javaparser.ast.comments.JavadocComment;
 import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.javadoc.Javadoc;
-import dev.magicmq.docstranslator.DocsTranslator;
+import dev.magicmq.docstranslator.SettingsProvider;
 import dev.magicmq.docstranslator.utils.StringUtils;
 import dev.magicmq.docstranslator.utils.TypeUtils;
 
@@ -55,11 +55,11 @@ public class EnumEntry extends Member {
 
         String replaced;
         if (!arguments.isEmpty()) {
-            replaced = DocsTranslator.get().getSettings().getFormats().getEnum().getEntryWithArgs()
+            replaced = SettingsProvider.get().getSettings().getFormats().getEnum().getEntryWithArgs()
                     .replace("%name%", enumConstantDeclaration.getNameAsString())
                     .replace("%args%", String.join(", ", arguments));
         } else {
-            replaced = DocsTranslator.get().getSettings().getFormats().getEnum().getEntryRegular()
+            replaced = SettingsProvider.get().getSettings().getFormats().getEnum().getEntryRegular()
                     .replace("%name%", enumConstantDeclaration.getNameAsString())
                     .replace("%num%", "" + value);
         }

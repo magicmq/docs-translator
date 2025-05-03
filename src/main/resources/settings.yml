@@ -1,6 +1,3 @@
-general:
-  loggingLevel: 'INFO'
-
 maven:
   path: 'maven'
   useCentral: true

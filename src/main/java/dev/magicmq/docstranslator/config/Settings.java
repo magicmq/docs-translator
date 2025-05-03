@@ -21,21 +21,12 @@ import dev.magicmq.docstranslator.config.packaging.Packaging;
 
 public class Settings {
 
-    private General general;
     private Maven maven;
     private JdkSources jdkSources;
     private Output output;
     private ImportExclusions importExclusions;
     private Formats formats;
     private Packaging packaging;
-
-    public General getGeneral() {
-        return general;
-    }
-
-    public void setGeneral(General general) {
-        this.general = general;
-    }
 
     public Maven getMaven() {
         return maven;
