@@ -18,6 +18,7 @@ package dev.magicmq.docstranslator;
 
 
 import dev.magicmq.docstranslator.config.Repository;
+import dev.magicmq.docstranslator.translate.Translator;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.aether.artifact.Artifact;
 import org.slf4j.Logger;

@@ -14,20 +14,15 @@
  *    limitations under the License.
  */
 
-package dev.magicmq.docstranslator;
+package dev.magicmq.docstranslator.translate;
 
 
-import com.github.javaparser.JavaParser;
-import com.github.javaparser.ast.CompilationUnit;
-import com.github.javaparser.ast.nodeTypes.NodeWithName;
-import dev.magicmq.docstranslator.module.Module;
+import dev.magicmq.docstranslator.SettingsProvider;
 import dev.magicmq.docstranslator.module.init.InitPyRegistry;
 import org.eclipse.aether.artifact.Artifact;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
@@ -37,23 +32,21 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.stream.Stream;
 
-public class Translator {
+public class Translator extends AbstractTranslator {
 
     private static final Logger logger = LoggerFactory.getLogger(Translator.class);
 
     private final List<Artifact> artifacts;
-    private final Path outputFolder;
-    private final InitPyRegistry registry;
     private final JdkTranslator jdkTranslator;
 
     public Translator(List<Artifact> artifacts, Path javaSourcesPath, Path outputFolder) {
+        super(outputFolder, new InitPyRegistry());
         this.artifacts = artifacts;
-        this.outputFolder = outputFolder;
-        this.registry = new InitPyRegistry();
-        this.jdkTranslator = new JdkTranslator(javaSourcesPath, this.outputFolder, registry);
+        this.jdkTranslator = new JdkTranslator(javaSourcesPath, this.outputFolder, this.registry);
     }
 
-    public void translate() throws IOException {
+    @Override
+    public void translate() {
         logger.info("Translating sources...");
         for (Artifact artifact : artifacts) {
             logger.info("Translating sources for artifact {}", artifact);
@@ -69,13 +62,17 @@ public class Translator {
 
                 try (Stream<Path> walk = Files.walk(root)) {
                     translateSources(walk, groupId, artifactId, artifactVersion);
+                } catch (IOException e) {
+                    logger.error("Error when iterating over files in JAR file '{}'", jarFilePath, e);
                 }
+            } catch (IOException e) {
+                logger.error("Error when opening JAR file '{}'", jarFilePath, e);
             }
         }
 
         if (SettingsProvider.get().getSettings().getJdkSources().isTranslate()) {
             logger.info("Translating JDK sources...");
-            jdkTranslator.translateSources();
+            jdkTranslator.translate();
         }
 
         logger.info("Saving __init__.py files...");
@@ -100,64 +97,15 @@ public class Translator {
 
                             registry.getInitPyAt(parentPath).addImport(className);
 
-                            String translated = translateSource(path, groupId, artifactId, artifactVersion, className);
+                            String translated = translateSource(path, groupId, artifactId, artifactVersion, className, jdkTranslator);
                             Path outputFilePath = outputFolder.resolve(physicalPath.getParent()).resolve(className + ".py");
                             saveTranslatedFile(outputFilePath, translated);
                         }
+                    } catch (NoSuchElementException e) {
+                        logger.error("JavaParser was unable to parse source file '{}'", path, e);
                     } catch (IOException e) {
                         logger.error("Error when processing source file '{}'. Skipping...", path, e);
                     }
         });
     }
-
-    private String translateSource(Path sourceFilePath, String groupId, String artifactId, String artifactVersion, String className) throws IOException {
-        String fileContent = Files.readString(sourceFilePath);
-
-        CompilationUnit cu;
-        try {
-            cu = new JavaParser().parse(fileContent).getResult().orElseThrow();
-        } catch (NoSuchElementException e) {
-            return
-                    """
-                    \"\"\"
-                    DocsTranslator encountered an error when attempting to translate this module.
-                    
-                    JavaParser was unable to parse the Java source file.
-                    \"\"\"
-                    """;
-        }
-
-        String packageName = cu.getPackageDeclaration()
-                .map(NodeWithName::getNameAsString)
-                .orElse("");
-
-        Module module = new Module(
-                groupId,
-                artifactId,
-                artifactVersion,
-                packageName,
-                className,
-                jdkTranslator
-        );
-        module.init(cu);
-
-        return module.translate();
-    }
-
-    private void saveTranslatedFile(Path outputFilePath, String text) throws IOException {
-        Files.createDirectories(outputFilePath.getParent());
-
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputFilePath.toFile()))) {
-            writer.write(text);
-        } catch (IOException e) {
-            logger.error("Error when saving file '{}' to output folder", outputFilePath.getFileName().toString(), e);
-        }
-    }
-
-    private void generateInitPy(Path folder) {
-        if (!registry.doesInitPyExistAt(folder)) {
-            registry.newInitPy(folder);
-        }
-    }
-
 }

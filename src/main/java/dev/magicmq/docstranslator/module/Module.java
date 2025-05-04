@@ -24,7 +24,7 @@ import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.EnumDeclaration;
 import com.github.javaparser.ast.body.TypeDeclaration;
 import com.github.javaparser.ast.expr.Name;
-import dev.magicmq.docstranslator.JdkTranslator;
+import dev.magicmq.docstranslator.translate.JdkTranslator;
 import dev.magicmq.docstranslator.SettingsProvider;
 import dev.magicmq.docstranslator.base.Translatable;
 import dev.magicmq.docstranslator.members.Annotation;
@@ -47,19 +47,19 @@ public class Module implements Translatable {
     private final String artifactVersion;
     private final String packageName;
     private final String moduleName;
-    private final JdkTranslator javaTranslator;
+    private final JdkTranslator jdkTranslator;
 
     private final TreeSet<Import> imports;
 
     private Member member;
 
-    public Module(String groupId, String artifactId, String artifactVersion, String packageName, String moduleName, JdkTranslator javaTranslator) {
+    public Module(String groupId, String artifactId, String artifactVersion, String packageName, String moduleName, JdkTranslator jdkTranslator) {
         this.groupId = groupId;
         this.artifactId = artifactId;
         this.artifactVersion = artifactVersion;
         this.packageName = packageName;
         this.moduleName = moduleName;
-        this.javaTranslator = javaTranslator;
+        this.jdkTranslator = jdkTranslator;
         this.imports = new TreeSet<>();
         imports.add(new Import("typing", "Any, Callable, Iterable, Tuple, overload"));
     }
@@ -85,8 +85,10 @@ public class Module implements Translatable {
                 }
             } else {
                 if (!SettingsProvider.get().getSettings().getImportExclusions().getClasses().contains(name.asString()) && !SettingsProvider.get().getSettings().getImportExclusions().getPackages().contains(packageName)) {
-                    if (name.asString().startsWith("java.") && !this.packageName.startsWith("java."))
-                        javaTranslator.addSourceFile(packageName, className);
+                    if (name.asString().startsWith("java.")) {
+                        if (jdkTranslator != null)
+                            jdkTranslator.addSourceFile(packageName, className);
+                    }
 
                     this.imports.add(new Import(packageName, className));
                 }
