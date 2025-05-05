@@ -94,8 +94,9 @@ public class MavenResolver {
 
                 List<Artifact> allArtifacts = new ArrayList<>(dependencyResult.getArtifactResults().stream().map(ArtifactResult::getArtifact).toList());
 
-                allArtifacts.removeIf(toCheck ->
-                        exclusions.contains(toCheck.getGroupId() + ":" + toCheck.getArtifactId()) || exclusions.contains(toCheck.getGroupId()));
+                if (exclusions != null)
+                    allArtifacts.removeIf(toCheck ->
+                            exclusions.contains(toCheck.getGroupId() + ":" + toCheck.getArtifactId()) || exclusions.contains(toCheck.getGroupId()));
 
                 toReturn.addAll(fetchDependencies(allArtifacts));
             } catch (DependencyResolutionException e) {
