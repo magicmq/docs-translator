@@ -74,7 +74,7 @@ public class Module implements Translatable {
             try {
                 packageName = name.getQualifier().orElseThrow().asString();
             } catch (NoSuchElementException e) {
-                logger.warn("Failed to parse import '{}' for class '{}'. Skipping this import...", name.asString(), this.packageName + "." + moduleName);
+                logger.warn("Failed to parse import '{}' for class '{}'", name.asString(), this.packageName + "." + moduleName);
                 continue;
             }
             String className = name.getIdentifier();

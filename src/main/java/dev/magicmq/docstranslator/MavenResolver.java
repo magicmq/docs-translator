@@ -100,7 +100,7 @@ public class MavenResolver {
 
                 toReturn.addAll(fetchDependencies(allArtifacts));
             } catch (DependencyResolutionException e) {
-                logger.error("Error when resolving dependencies for artifact '{}'. Skipping...", artifact, e);
+                logger.error("Error when resolving dependencies for artifact '{}'", artifact, e);
             }
         }
 
@@ -124,7 +124,7 @@ public class MavenResolver {
                 sourceResults.add(system.resolveArtifact(session, sourcesRequest).getArtifact());
                 logger.info("Fetched JAR artifact {}", artifact);
             } catch (ArtifactResolutionException e) {
-                logger.error("Error when resolving dependency artifact '{}'. Skipping...", artifact, e);
+                logger.error("Error when resolving dependency artifact '{}'", artifact, e);
             }
         }
         return sourceResults;

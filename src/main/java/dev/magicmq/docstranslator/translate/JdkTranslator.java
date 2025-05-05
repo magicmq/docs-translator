@@ -73,7 +73,7 @@ public class JdkTranslator extends AbstractTranslator {
             } catch (NoSuchFileException e) {
                 logger.error("Could not process JDK source file '{}' because the file does not exist", sourceFilePath);
             } catch (IOException e) {
-                logger.error("Error when processing JDK source file '{}'. Skipping...", sourceFilePath, e);
+                logger.error("Error when processing JDK source file '{}'", sourceFilePath, e);
             }
         }
     }

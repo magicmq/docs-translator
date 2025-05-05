@@ -100,13 +100,13 @@ public class DocString extends Indented {
                 try {
                     addThrows(tag.getName().orElseThrow(), text);
                 } catch (NoSuchElementException e) {
-                    logger.warn("Error when parsing JavaDocs @exception tag '{}'. Unable to get exception. Skipping...", tag.toText());
+                    logger.warn("Error when parsing JavaDocs @exception tag '{}'. Unable to get exception", tag.toText());
                 }
             } else if (type == JavadocBlockTag.Type.PARAM) {
                 try {
                     addParam(tag.getName().orElseThrow(), text);
                 } catch (NoSuchElementException e) {
-                    logger.warn("Error when parsing JavaDocs @param tag '{}'. Unable to get parameter. Skipping...", tag.toText());
+                    logger.warn("Error when parsing JavaDocs @param tag '{}'. Unable to get parameter", tag.toText());
                 }
             } else if (type == JavadocBlockTag.Type.RETURN)
                 addReturns(text);
@@ -124,7 +124,7 @@ public class DocString extends Indented {
                 try {
                     addThrows(tag.getName().orElseThrow(), text);
                 } catch (NoSuchElementException e) {
-                    logger.warn("Error when parsing JavaDocs @throws tag '{}'. Unable to get exception. Skipping...", tag.toText());
+                    logger.warn("Error when parsing JavaDocs @throws tag '{}'. Unable to get exception", tag.toText());
                 }
             } else if (type == JavadocBlockTag.Type.VERSION) {
                 setVersion(text);

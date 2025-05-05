@@ -105,7 +105,7 @@ public class Class extends Member {
             try {
                 return inner.getParentNode().orElseThrow().equals(declaration);
             } catch (NoSuchElementException e) {
-                logger.warn("Error when getting parent node for inner class '{}'. Skipping...", inner.getNameAsString());
+                logger.warn("Error when getting parent node for inner class '{}'", inner.getNameAsString());
                 return false;
             }
         });
@@ -121,7 +121,7 @@ public class Class extends Member {
             try {
                 return inner.getParentNode().orElseThrow().equals(declaration);
             } catch (NoSuchElementException e) {
-                logger.warn("Error when getting parent node for inner enum '{}'. Skipping...", inner.getNameAsString());
+                logger.warn("Error when getting parent node for inner enum '{}'", inner.getNameAsString());
                 return false;
             }
         });
