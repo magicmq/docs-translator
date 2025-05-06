@@ -8,7 +8,7 @@
     <artifactId>docs-translator</artifactId>
     <version>1.0-SNAPSHOT</version>
     <name>DocsTranslator</name>
-    <description>Translates documented Java source code into documented Python code</description>
+    <description>A Java application which translates documented Java source code into documented Python code.</description>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
