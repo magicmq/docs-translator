@@ -16,96 +16,62 @@
 
 package dev.magicmq.docstranslator.translate;
 
-
-import dev.magicmq.docstranslator.SettingsProvider;
+import com.github.javaparser.JavaParser;
+import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.nodeTypes.NodeWithName;
+import dev.magicmq.docstranslator.module.Module;
 import dev.magicmq.docstranslator.module.init.InitPyRegistry;
-import org.eclipse.aether.artifact.Artifact;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.stream.Stream;
 
-public class Translator extends AbstractTranslator {
+public class Translator {
 
-    private static final Logger logger = LoggerFactory.getLogger(Translator.class);
+    protected final Path outputFolder;
+    protected final InitPyRegistry registry;
 
-    private final List<Artifact> artifacts;
-    private final JdkTranslator jdkTranslator;
-
-    public Translator(List<Artifact> artifacts, Path javaSourcesPath, Path outputFolder) {
-        super(outputFolder, new InitPyRegistry());
-        this.artifacts = artifacts;
-        this.jdkTranslator = new JdkTranslator(javaSourcesPath, this.outputFolder, this.registry);
+    public Translator(Path outputFolder, InitPyRegistry registry) {
+        this.outputFolder = outputFolder;
+        this.registry = registry;
     }
 
-    @Override
-    public void translate() {
-        logger.info("Translating sources...");
-        for (Artifact artifact : artifacts) {
-            logger.info("Translating sources for artifact {}", artifact);
+    protected String translateSource(Path sourceFilePath, String groupId, String artifactId, String artifactVersion, String className, JdkTranslator jdkTranslator) throws IOException, NoSuchElementException {
+        String fileContent = Files.readString(sourceFilePath);
 
-            Path jarFilePath = artifact.getFile().toPath();
+        CompilationUnit cu = new JavaParser().parse(fileContent).getResult().orElseThrow();
 
-            String groupId = artifact.getGroupId();
-            String artifactId = artifact.getArtifactId();
-            String artifactVersion = artifact.getVersion();
+        String packageName = cu.getPackageDeclaration()
+                .map(NodeWithName::getNameAsString)
+                .orElse("");
 
-            try (FileSystem jarFileSystem = FileSystems.newFileSystem(jarFilePath)) {
-                Path root = jarFileSystem.getPath("");
+        Module module = new Module(
+                groupId,
+                artifactId,
+                artifactVersion,
+                packageName,
+                className,
+                jdkTranslator
+        );
+        module.init(cu);
 
-                try (Stream<Path> walk = Files.walk(root)) {
-                    translateSources(walk, groupId, artifactId, artifactVersion);
-                } catch (IOException e) {
-                    logger.error("Error when iterating over files in JAR file '{}'", jarFilePath, e);
-                }
-            } catch (IOException e) {
-                logger.error("Error when opening JAR file '{}'", jarFilePath, e);
-            }
-        }
-
-        if (SettingsProvider.get().getSettings().getJdkSources().isTranslate()) {
-            logger.info("Translating JDK sources...");
-            jdkTranslator.translate();
-        }
-
-        logger.info("Saving __init__.py files...");
-        registry.saveInitPys(outputFolder);
+        return module.translate();
     }
 
-    private void translateSources(Stream<Path> walker, String groupId, String artifactId, String artifactVersion) {
-        walker
-                .filter(Files::isRegularFile)
-                .filter(path -> path.getFileName().toString().endsWith(".java"))
-                .forEach(path -> {
-                    Path physicalPath = Path.of(path.toString());
-                    try {
-                        String sourceFileName = path.getFileName().toString();
-                        String className = sourceFileName.substring(0, sourceFileName.lastIndexOf("."));
+    protected void saveTranslatedFile(Path outputFilePath, String text) throws IOException {
+        Files.createDirectories(outputFilePath.getParent());
 
-                        if (!className.equals("package-info") && !className.equals("module-info")) {
-                            Path parentPath = physicalPath.getParent();
-                            generateInitPy(parentPath);
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputFilePath.toFile()))) {
+            writer.write(text);
+        }
+    }
 
-                            logger.debug("Processing source file '{}'", path);
-
-                            registry.getInitPyAt(parentPath).addImport(className);
-
-                            String translated = translateSource(path, groupId, artifactId, artifactVersion, className, jdkTranslator);
-                            Path outputFilePath = outputFolder.resolve(physicalPath.getParent()).resolve(className + ".py");
-                            saveTranslatedFile(outputFilePath, translated);
-                        }
-                    } catch (NoSuchElementException e) {
-                        logger.error("JavaParser was unable to parse source file '{}'", path, e);
-                    } catch (IOException e) {
-                        logger.error("Error when processing source file '{}'", path, e);
-                    }
-        });
+    protected void generateInitPy(Path folder) {
+        if (!registry.doesInitPyExistAt(folder)) {
+            registry.newInitPy(folder);
+        }
     }
 }

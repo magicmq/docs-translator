@@ -21,4 +21,9 @@ public class Repository {
     public void setUrl(String url) {
         this.url = url;
     }
+
+    @Override
+    public String toString() {
+        return String.format("Repository[id=%s, url=%s]", id, url);
+    }
 }

@@ -29,7 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-public class JdkTranslator extends AbstractTranslator {
+public class JdkTranslator extends Translator {
 
     private static final Logger logger = LoggerFactory.getLogger(JdkTranslator.class);
 
@@ -42,7 +42,6 @@ public class JdkTranslator extends AbstractTranslator {
         neededSourcesPaths = new ArrayList<>();
     }
 
-    @Override
     public void translate() {
         for (Path sourceFilePath : neededSourcesPaths) {
             Path parentPath = sourceFilePath.getParent();

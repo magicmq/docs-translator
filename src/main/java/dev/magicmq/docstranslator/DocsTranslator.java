@@ -18,16 +18,12 @@ package dev.magicmq.docstranslator;
 
 
 import dev.magicmq.docstranslator.config.TranslateJob;
-import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -38,15 +34,12 @@ public class DocsTranslator {
 
     private final Path workingDir;
 
-    private Path mavenDir;
-    private Path javaSourcesDir;
-
     public DocsTranslator(Path workingDir) {
         this.workingDir = workingDir;
     }
 
     public void start() {
-        MDC.put("job", "master");
+        MDC.put("job", "main");
 
         try {
             logger.info("Initializing settings.yml...");
@@ -58,34 +51,31 @@ public class DocsTranslator {
                 return;
             }
 
-            logger.info("Initializing maven and JDK sources directories...");
+            logger.info("Initializing Apache Maven Resolver...");
 
+            MavenResolver maven;
             try {
-                initDirectories();
+                maven = new MavenResolver(workingDir);
             } catch (IOException e) {
-                logger.error("Error when initializing maven and/or JDK sources directories", e);
+                logger.error("Error when initializing Maven Resolver", e);
                 return;
             }
 
-            logger.info("Initializing translate jobs...");
+            logger.info("Initializing and starting translate jobs...");
 
-            List<dev.magicmq.docstranslator.TranslateJob> jobs = new ArrayList<>();
+            ExecutorService executor = Executors.newFixedThreadPool(SettingsProvider.get().getSettings().getBatching().getThreads());
+
             for (TranslateJob item : SettingsProvider.get().getSettings().getTranslateJobs()) {
-                jobs.add(new dev.magicmq.docstranslator.TranslateJob(
+                logger.info("Starting translate job '{}' version '{}'", item.getPyPIName(), item.getPyPIVersion());
+                executor.submit(new dev.magicmq.docstranslator.TranslateJob(
                         workingDir,
-                        mavenDir,
-                        javaSourcesDir,
                         item.getPyPIName(),
                         item.getPyPIVersion(),
                         item.getArtifacts(),
-                        item.getPyModules()
+                        item.getPyModules(),
+                        maven
                 ));
             }
-
-            logger.info("Starting translate jobs...");
-
-            ExecutorService executor = Executors.newFixedThreadPool(SettingsProvider.get().getSettings().getBatching().getThreads());
-            jobs.forEach(executor::submit);
 
             executor.shutdown();
             try {
@@ -96,21 +86,10 @@ public class DocsTranslator {
                 Thread.currentThread().interrupt();
             }
 
-            logger.info("Finished all translate jobs!");
+            logger.info("All translate jobs have finished!");
         } finally {
             MDC.clear();
         }
-    }
-
-    private void initDirectories() throws IOException {
-        mavenDir = workingDir.resolve(SettingsProvider.get().getSettings().getMaven().getPath()).toAbsolutePath();
-        javaSourcesDir = workingDir.resolve(SettingsProvider.get().getSettings().getJdkSources().getPath()).toAbsolutePath();
-
-        if (SettingsProvider.get().getSettings().getMaven().isDeleteOnStart() && Files.exists(mavenDir)) {
-            logger.info("Deleting local repository folder...");
-            FileUtils.deleteDirectory(mavenDir.toFile());
-        }
-        Files.createDirectories(mavenDir);
     }
 
     public static void main(String[] args) {

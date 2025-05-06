@@ -17,6 +17,8 @@
 package dev.magicmq.docstranslator;
 
 
+import dev.magicmq.docstranslator.config.Repository;
+import org.apache.commons.io.FileUtils;
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils;
 import org.eclipse.aether.DefaultRepositorySystemSession;
 import org.eclipse.aether.RepositorySystem;
@@ -36,10 +38,16 @@ import org.eclipse.aether.resolution.DependencyResolutionException;
 import org.eclipse.aether.resolution.DependencyResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
-import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.LinkedBlockingQueue;
 
 public class MavenResolver {
 
@@ -48,9 +56,23 @@ public class MavenResolver {
     private final RepositorySystem system;
     private final RepositorySystemSession session;
     private final List<RemoteRepository> remoteRepositories;
+    private final List<String> excludeArtifacts;
     private final String dependencyScope;
 
-    public MavenResolver(File localRepository, boolean useCentral, String dependencyScope) {
+    private final BlockingQueue<FetchRequest> requestQueue = new LinkedBlockingQueue<>();
+
+    public MavenResolver(Path workingDir) throws IOException {
+        logger.info("Initializing Maven repository directory...");
+
+        Path mavenDir = workingDir.resolve(SettingsProvider.get().getSettings().getMaven().getPath()).toAbsolutePath();
+        if (SettingsProvider.get().getSettings().getMaven().isDeleteOnStart() && Files.exists(mavenDir)) {
+            logger.info("Deleting local repository folder...");
+            FileUtils.deleteDirectory(mavenDir.toFile());
+        }
+        Files.createDirectories(mavenDir);
+
+        logger.info("Initializing Maven repository session and locator...");
+
         DefaultServiceLocator locator = MavenRepositorySystemUtils.newServiceLocator();
         locator.addService(org.eclipse.aether.spi.connector.RepositoryConnectorFactory.class,
                 org.eclipse.aether.connector.basic.BasicRepositoryConnectorFactory.class);
@@ -61,55 +83,81 @@ public class MavenResolver {
         this.system = locator.getService(RepositorySystem.class);
 
         DefaultRepositorySystemSession session = MavenRepositorySystemUtils.newSession();
-        LocalRepository localRepo = new LocalRepository(localRepository);
+        LocalRepository localRepo = new LocalRepository(mavenDir.toFile());
         session.setLocalRepositoryManager(system.newLocalRepositoryManager(session, localRepo));
         this.session = session;
 
+        logger.info("Adding remote repositories...");
+
         this.remoteRepositories = new ArrayList<>();
-        if (useCentral)
+        if (SettingsProvider.get().getSettings().getMaven().isUseCentral()) {
+            logger.debug("Adding Maven central repository...");
             this.remoteRepositories.add(new RemoteRepository.Builder(
                     "central",
                     "default",
-                    "https://repo.maven.apache.org/maven2/").build());
+                    "https://repo.maven.apache.org/maven2/"
+            ).build());
+        }
+        for (Repository repository : SettingsProvider.get().getSettings().getMaven().getRepositories()) {
+            logger.debug("Adding Repository {}", repository);
+            this.remoteRepositories.add(new RemoteRepository.Builder(
+                    repository.getId(),
+                    "default",
+                    repository.getUrl()
+            ).build());
+        }
 
-        this.dependencyScope = dependencyScope;
+        this.excludeArtifacts = SettingsProvider.get().getSettings().getMaven().getExcludeArtifacts();
+        this.dependencyScope = SettingsProvider.get().getSettings().getMaven().getDependencyScope();
+
+        logger.info("Initializing background worker...");
+
+        Thread worker = new Thread(this::processRequests, "maven-resolver-worker");
+        worker.setDaemon(true);
+        worker.start();
     }
 
-    public void addRemoteRepository(String id, String url) {
-        this.remoteRepositories.add(new RemoteRepository.Builder(id, "default", url).build());
+    public CompletableFuture<List<Artifact>> fetch(String job, String artifact) {
+        CompletableFuture<List<Artifact>> future = new CompletableFuture<>();
+        requestQueue.offer(new FetchRequest(job, artifact, future));
+        return future;
     }
 
-    public List<Artifact> fetch(List<String> artifacts, List<String> exclusions) {
+    private List<Artifact> fetchInternal(String artifact) {
+        logger.info("Fetching artifact '{}' and its dependencies...", artifact);
+
         List<Artifact> toReturn = new ArrayList<>();
 
-        for (String artifact : artifacts) {
-            try {
-                Artifact rootArtifact = new DefaultArtifact(artifact);
-                Dependency dependency = new Dependency(rootArtifact, dependencyScope);
+        try {
+            Artifact rootArtifact = new DefaultArtifact(artifact);
+            Dependency dependency = new Dependency(rootArtifact, dependencyScope);
 
-                CollectRequest collectRequest = new CollectRequest(dependency, remoteRepositories);
+            CollectRequest collectRequest = new CollectRequest(dependency, remoteRepositories);
 
-                DependencyRequest dependencyRequest = new DependencyRequest(collectRequest, null);
-                DependencyResult dependencyResult = system.resolveDependencies(session, dependencyRequest);
+            DependencyRequest dependencyRequest = new DependencyRequest(collectRequest, null);
+            DependencyResult dependencyResult = system.resolveDependencies(session, dependencyRequest);
 
-                List<Artifact> allArtifacts = new ArrayList<>(dependencyResult.getArtifactResults().stream().map(ArtifactResult::getArtifact).toList());
+            List<Artifact> allArtifacts = new ArrayList<>(dependencyResult.getArtifactResults().stream().map(ArtifactResult::getArtifact).toList());
 
-                if (exclusions != null)
-                    allArtifacts.removeIf(toCheck ->
-                            exclusions.contains(toCheck.getGroupId() + ":" + toCheck.getArtifactId()) || exclusions.contains(toCheck.getGroupId()));
+            if (excludeArtifacts != null)
+                allArtifacts.removeIf(toCheck ->
+                        excludeArtifacts.contains(toCheck.getGroupId() + ":" + toCheck.getArtifactId()) || excludeArtifacts.contains(toCheck.getGroupId()));
 
-                toReturn.addAll(fetchDependencies(allArtifacts));
-            } catch (DependencyResolutionException e) {
-                logger.error("Error when resolving dependencies for artifact '{}'", artifact, e);
-            }
+            List<Artifact> sources = fetchSources(allArtifacts);
+
+            toReturn.addAll(sources);
+        } catch (DependencyResolutionException e) {
+            logger.error("Error when resolving dependencies for artifact '{}'", artifact, e);
         }
 
         return toReturn;
     }
 
-    private List<Artifact> fetchDependencies(List<Artifact> artifacts) {
+    private List<Artifact> fetchSources(List<Artifact> artifacts) {
         List<Artifact> sourceResults = new ArrayList<>();
         for (Artifact artifact : artifacts) {
+            logger.info("Fetching sources for artifact '{}'...", artifact);
+
             Artifact sourcesArtifact = new DefaultArtifact(
                     artifact.getGroupId(),
                     artifact.getArtifactId(),
@@ -122,11 +170,33 @@ public class MavenResolver {
                 sourcesRequest.setArtifact(sourcesArtifact);
                 sourcesRequest.setRepositories(remoteRepositories);
                 sourceResults.add(system.resolveArtifact(session, sourcesRequest).getArtifact());
-                logger.info("Fetched JAR artifact {}", artifact);
             } catch (ArtifactResolutionException e) {
                 logger.error("Error when resolving dependency artifact '{}'", artifact, e);
             }
         }
         return sourceResults;
     }
+
+    private void processRequests() {
+        while (true) {
+            FetchRequest request = null;
+            try {
+                request = requestQueue.take();
+
+                MDC.put("job", request.job);
+
+                List<Artifact> result = fetchInternal(request.artifact);
+                request.future.complete(result);
+            } catch (Exception e) {
+                if (request != null)
+                    request.future.completeExceptionally(e);
+                else
+                    logger.error("Failed to take request from queue", e);
+            } finally {
+                MDC.clear();
+            }
+        }
+    }
+
+    private record FetchRequest(String job, String artifact, CompletableFuture<List<Artifact>> future) {}
 }

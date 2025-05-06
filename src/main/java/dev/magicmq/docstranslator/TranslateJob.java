@@ -17,8 +17,7 @@
 package dev.magicmq.docstranslator;
 
 
-import dev.magicmq.docstranslator.config.Repository;
-import dev.magicmq.docstranslator.translate.Translator;
+import dev.magicmq.docstranslator.translate.ArtifactTranslator;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.aether.artifact.Artifact;
 import org.slf4j.Logger;
@@ -29,34 +28,35 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 public class TranslateJob implements Runnable {
 
     private static final Logger logger = LoggerFactory.getLogger(TranslateJob.class);
 
     private final Path workingDir;
-    private final Path mavenDir;
     private final Path javaSourcesDir;
     private final String pyPIName;
     private final String pyPIVersion;
     private final List<String> artifacts;
     private final List<String> pyModules;
+    private MavenResolver maven;
 
     private Path outputFolderPath;
 
-    public TranslateJob(Path workingDir, Path mavenDir, Path javaSourcesDir, String pyPIName, String pyPIVersion, List<String> artifacts, List<String> pyModules) {
+    public TranslateJob(Path workingDir, String pyPIName, String pyPIVersion, List<String> artifacts, List<String> pyModules, MavenResolver maven) {
         this.workingDir = workingDir;
-        this.mavenDir = mavenDir;
-        this.javaSourcesDir = javaSourcesDir;
+        this.javaSourcesDir = workingDir.resolve(SettingsProvider.get().getSettings().getJdkSources().getPath()).toAbsolutePath();
         this.pyPIName = pyPIName;
         this.pyPIVersion = pyPIVersion;
         this.artifacts = artifacts;
         this.pyModules = pyModules;
+        this.maven = maven;
     }
 
     @Override
     public void run() {
-        MDC.put("job", pyPIVersion);
+        MDC.put("job", this.pyPIVersion);
 
         try {
             logger.info("Initializing output folder...");
@@ -68,14 +68,23 @@ public class TranslateJob implements Runnable {
                 return;
             }
 
-            logger.info("Fetching artifacts to translate...");
+            logger.info("Fetching and translating artifacts...");
 
-            List<Artifact> artifacts = fetchArtifacts();
+            ArtifactTranslator artifactTranslator = new ArtifactTranslator(javaSourcesDir, outputFolderPath);
 
-            logger.info("Translating...");
+            for (String artifactString : artifacts) {
+                try {
+                    List<Artifact> artifacts = maven.fetch(this.pyPIVersion, artifactString).get();
+                    artifactTranslator.translate(artifacts);
+                } catch (InterruptedException | ExecutionException e) {
+                        logger.error("Error when fetching artifact '{}' and/or its dependencies from Maven,", artifactString, e);
+                        return;
+                    }
+            }
 
-            Translator translator = new Translator(artifacts, javaSourcesDir, outputFolderPath);
-            translator.translate();
+            logger.info("Performing post-translate tasks...");
+
+            artifactTranslator.doPostTranslateTasks();
 
             logger.info("Generating Python package files...");
 
@@ -87,7 +96,7 @@ public class TranslateJob implements Runnable {
                 return;
             }
 
-            logger.info("Finished!");
+            logger.info("Finished translate job '{}' version '{}'!", pyPIName, pyPIVersion);
 
         } finally {
             MDC.clear();
@@ -106,17 +115,5 @@ public class TranslateJob implements Runnable {
             FileUtils.deleteDirectory(outputFolderPath.toFile());
         }
         Files.createDirectories(outputFolderPath);
-    }
-
-    private List<Artifact> fetchArtifacts() {
-        MavenResolver resolver = new MavenResolver(
-                mavenDir.toFile(),
-                SettingsProvider.get().getSettings().getMaven().isUseCentral(),
-                SettingsProvider.get().getSettings().getMaven().getDependencyScope());
-        for (Repository repository : SettingsProvider.get().getSettings().getMaven().getRepositories()) {
-            resolver.addRemoteRepository(repository.getId(), repository.getUrl());
-        }
-
-        return resolver.fetch(artifacts, SettingsProvider.get().getSettings().getMaven().getExcludeArtifacts());
     }
 }
