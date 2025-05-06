@@ -48,7 +48,7 @@ If you encounter any issues while using DocsTranslator, [submit an issue report]
 
 ## Logging
 
-DocsTranslator generates log files in the `logs` folder of the working directory. A separate log file is created for each log file, and . Log files are created fresh for each run of the application- they are not appended.
+DocsTranslator generates log files in the `logs` folder of the working directory. A separate log file is created for each job as well as a master log file for the main thread. Log files are created fresh for each run of the application- they are not appended.
 
 ## Settings
 
