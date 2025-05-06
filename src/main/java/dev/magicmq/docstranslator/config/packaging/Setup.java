@@ -20,31 +20,12 @@ import java.util.List;
 
 public class Setup {
 
-    private String name;
-    private String version;
     private String author;
     private String authorEmail;
     private String description;
     private String url;
-    private List<String> pyModules;
     private String pythonRequires;
     private List<String> classifiers;
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getVersion() {
-        return version;
-    }
-
-    public void setVersion(String version) {
-        this.version = version;
-    }
 
     public String getAuthor() {
         return author;
@@ -76,14 +57,6 @@ public class Setup {
 
     public void setUrl(String url) {
         this.url = url;
-    }
-
-    public List<String> getPyModules() {
-        return pyModules;
-    }
-
-    public void setPyModules(List<String> pyModules) {
-        this.pyModules = pyModules;
     }
 
     public String getPythonRequires() {

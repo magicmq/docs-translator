@@ -19,14 +19,34 @@ package dev.magicmq.docstranslator.config;
 import dev.magicmq.docstranslator.config.formats.Formats;
 import dev.magicmq.docstranslator.config.packaging.Packaging;
 
+import java.util.List;
+
 public class Settings {
 
+    private List<TranslateJob> translateJobs;
+    private Batching batching;
     private Maven maven;
     private JdkSources jdkSources;
     private Output output;
     private ImportExclusions importExclusions;
     private Formats formats;
     private Packaging packaging;
+
+    public List<TranslateJob> getTranslateJobs() {
+        return translateJobs;
+    }
+
+    public void setTranslate(List<TranslateJob> translateJobs) {
+        this.translateJobs = translateJobs;
+    }
+
+    public Batching getBatching() {
+        return batching;
+    }
+
+    public void setBatching(Batching batching) {
+        this.batching = batching;
+    }
 
     public Maven getMaven() {
         return maven;

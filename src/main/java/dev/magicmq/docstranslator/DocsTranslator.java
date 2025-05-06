@@ -17,17 +17,20 @@
 package dev.magicmq.docstranslator;
 
 
-import dev.magicmq.docstranslator.config.Repository;
-import dev.magicmq.docstranslator.translate.Translator;
+import dev.magicmq.docstranslator.config.TranslateJob;
 import org.apache.commons.io.FileUtils;
-import org.eclipse.aether.artifact.Artifact;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public class DocsTranslator {
 
@@ -35,68 +38,79 @@ public class DocsTranslator {
 
     private final Path workingDir;
 
-    private Path mavenPath;
-    private Path javaSourcesPath;
-    private Path outputFolderPath;
+    private Path mavenDir;
+    private Path javaSourcesDir;
 
     public DocsTranslator(Path workingDir) {
         this.workingDir = workingDir;
     }
 
-    public void start() throws IOException {
-        logger.info("Initializing settings.yml...");
+    public void start() {
+        MDC.put("job", "master");
 
-        SettingsProvider.get().initSettings(workingDir);
+        try {
+            logger.info("Initializing settings.yml...");
 
-        logger.info("Initializing working directories...");
+            try {
+                SettingsProvider.get().initSettings(workingDir);
+            } catch (IOException e) {
+                logger.error("Error while initializing settings.yml", e);
+                return;
+            }
 
-        initDirectories();
+            logger.info("Initializing maven and JDK sources directories...");
 
-        logger.info("Fetching artifacts to translate...");
+            try {
+                initDirectories();
+            } catch (IOException e) {
+                logger.error("Error when initializing maven and/or JDK sources directories", e);
+                return;
+            }
 
-        List<Artifact> artifacts = fetchArtifacts();
+            logger.info("Initializing translate jobs...");
 
-        logger.info("Translating...");
+            List<dev.magicmq.docstranslator.TranslateJob> jobs = new ArrayList<>();
+            for (TranslateJob item : SettingsProvider.get().getSettings().getTranslateJobs()) {
+                jobs.add(new dev.magicmq.docstranslator.TranslateJob(
+                        workingDir,
+                        mavenDir,
+                        javaSourcesDir,
+                        item.getPyPIName(),
+                        item.getPyPIVersion(),
+                        item.getArtifacts(),
+                        item.getPyModules()
+                ));
+            }
 
-        Translator translator = new Translator(artifacts, javaSourcesPath, outputFolderPath);
-        translator.translate();
+            logger.info("Starting translate jobs...");
 
-        logger.info("Generating Python package files...");
+            ExecutorService executor = Executors.newFixedThreadPool(SettingsProvider.get().getSettings().getBatching().getThreads());
+            jobs.forEach(executor::submit);
 
-        PackagingGenerator packagingGenerator = new PackagingGenerator(outputFolderPath);
-        packagingGenerator.generate();
+            executor.shutdown();
+            try {
+                executor.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                logger.error("Translate jobs were interrupted before they could finish");
+                executor.shutdownNow();
+                Thread.currentThread().interrupt();
+            }
 
-        logger.info("Finished!");
+            logger.info("Finished all translate jobs!");
+        } finally {
+            MDC.clear();
+        }
     }
 
     private void initDirectories() throws IOException {
-        mavenPath = workingDir.resolve(SettingsProvider.get().getSettings().getMaven().getPath()).toAbsolutePath();
-        javaSourcesPath = workingDir.resolve(SettingsProvider.get().getSettings().getJdkSources().getPath()).toAbsolutePath();
-        outputFolderPath = workingDir.resolve(SettingsProvider.get().getSettings().getOutput().getPath()).toAbsolutePath();
+        mavenDir = workingDir.resolve(SettingsProvider.get().getSettings().getMaven().getPath()).toAbsolutePath();
+        javaSourcesDir = workingDir.resolve(SettingsProvider.get().getSettings().getJdkSources().getPath()).toAbsolutePath();
 
-        if (SettingsProvider.get().getSettings().getMaven().isDeleteOnStart() && Files.exists(mavenPath)) {
+        if (SettingsProvider.get().getSettings().getMaven().isDeleteOnStart() && Files.exists(mavenDir)) {
             logger.info("Deleting local repository folder...");
-            FileUtils.deleteDirectory(mavenPath.toFile());
+            FileUtils.deleteDirectory(mavenDir.toFile());
         }
-        Files.createDirectories(mavenPath);
-
-        if (SettingsProvider.get().getSettings().getOutput().isDeleteOnStart() && Files.exists(outputFolderPath)) {
-            logger.info("Deleting output folder...");
-            FileUtils.deleteDirectory(outputFolderPath.toFile());
-        }
-        Files.createDirectories(outputFolderPath);
-    }
-
-    private List<Artifact> fetchArtifacts() {
-        MavenResolver resolver = new MavenResolver(
-                mavenPath.toFile(),
-                SettingsProvider.get().getSettings().getMaven().isUseCentral(),
-                SettingsProvider.get().getSettings().getMaven().getDependencyScope());
-        for (Repository repository : SettingsProvider.get().getSettings().getMaven().getRepositories()) {
-            resolver.addRemoteRepository(repository.getId(), repository.getUrl());
-        }
-
-        return resolver.fetch(SettingsProvider.get().getSettings().getMaven().getArtifacts(), SettingsProvider.get().getSettings().getMaven().getExcludeArtifacts());
+        Files.createDirectories(mavenDir);
     }
 
     public static void main(String[] args) {
@@ -108,10 +122,6 @@ public class DocsTranslator {
         }
 
         DocsTranslator translator = new DocsTranslator(workingDir);
-        try {
-            translator.start();
-        } catch (IOException e) {
-            logger.error("Error when translating", e);
-        }
+        translator.start();
     }
 }

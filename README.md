@@ -21,20 +21,22 @@ DocsTranslator relies heavily upon the [JavaParser](https://javaparser.org/) lib
 
 The application runs in a stepwise fashion:
 
-1. The application initializes all working directories.
-2. Java source JAR files (I.E. those that follow the format `*-sources.jar`) are fetched from remote Maven repositories (for artifacts defined in the `settings.yml`) and installed into a local Maven repository using [Apache Maven Resolver](https://maven.apache.org/resolver/).
-3. Apache Maven Resolver resolves and fetches dependencies for all artifacts fetched in the previous step, using the scope specified in the `settings.yml`. Runtime dependencies are fetched by default, as these will be accessible at runtime.
-4. The application loops through the contents of all fetched JAR files. When it encounters a Java soruce file (ending in `.java`), the file is parsed with JavaParser, and a best-effort attempt is made to translate the source file into Python code.
-    * Any files not ending in `.java` are ignored.
-5. Translated `.py` files are placed in the user-defined output folder (`generated` by default), in the appropriate package.
-6. An entry is added to the `__init__.py` file in the appropriate package, to allow for importing the python module as one would normally import a Java class in Jython.
-7. Any source files from the Java Standard Library utilized by the previously translated Java source files are also translated in the same process outlined above.
-    * JDK sources must be downloaded manually and placed in the appropriate folder (`jdk-sources` by default)
-    * This step is only completed if enabled in the `settings.yml` (via the `jdkSources.translate` option)
-8. All `__init__.py` files are generated and placed in their appropriate locations.
-9. Python package-related files (`setup.py`, `pyproject.toml`, `MANIFEST.in`, `LICENSE`) are generated from options specified in the `settings.yml` and are placed in the user-defined output folder (`generated` by default).
+1. The application initializes the Maven and JDK sources directories.
+2. Each translate job defined in the `translateJobs` section of the `settings.yml` is initialized.
+3. Initialized jobs are submitted to a multithreaded executor service and are run in parallel. For each job:
+   1. Java source JAR files (I.E. those that follow the format `*-sources.jar`) are fetched from remote Maven repositories (for artifacts defined in the `settings.yml`) and installed into a local Maven repository using [Apache Maven Resolver](https://maven.apache.org/resolver/).
+   2. Apache Maven Resolver resolves and fetches dependencies for all artifacts fetched in the previous step, using the scope specified in the `settings.yml`. Runtime dependencies are fetched by default, as these will be accessible at runtime.
+   3. The application loops through the contents of all fetched JAR files. When it encounters a Java soruce file (ending in `.java`), the file is parsed with JavaParser, and a best-effort attempt is made to translate the source file into Python code.
+       * Any files not ending in `.java` are ignored.
+   4. Translated `.py` files are placed in the user-defined output folder (`generated` by default), in the appropriate package.
+   5. An entry is added to the `__init__.py` file in the appropriate package, to allow for importing the python module as one would normally import a Java class in Jython.
+   6. Any source files from the Java Standard Library utilized by the previously translated Java source files are also translated in the same process outlined above.
+       * JDK sources must be downloaded manually and placed in the appropriate folder (`jdk-sources` by default)
+       * This step is only completed if enabled in the `settings.yml` (via the `jdkSources.translate` option)
+   7. All `__init__.py` files are generated and placed in their appropriate locations.
+   8. Python package-related files (`setup.py`, `pyproject.toml`, `MANIFEST.in`, `LICENSE`) are generated from options specified in the `settings.yml` and are placed in the user-defined output folder (`generated` by default).
 
-Generated files are intended to be built into a Python package that can subsequently be installed into a Python virtual environment and imported.
+Generated files for each job are placed into subfolders of the output folder according to the job name and version. These generated files are intended to be built into a Python package that can subsequently be installed into a Python virtual environment and imported.
 
 ## Usage
 
@@ -44,32 +46,32 @@ You may use DocsTranslator to translate Java source files into documented Python
 
 If you encounter any issues while using DocsTranslator, [submit an issue report](https://github.com/magicmq/docs-translator/issues).
 
-### Building DocsTranslator
+## Logging
 
-Building requires [Maven](https://maven.apache.org/) and [Git](https://git-scm.com/). Maven 3+ is recommended for building the project. Follow these steps:
-
-1. Clone the repository: `git clone https://github.com/magicmq/docs-translator.git`
-2. Enter the repository root: `cd docs-translator`
-3. Build with Maven: `mvn clean package`
-4. Built files will be located in the `target` directory.
-
-## Contributing
-
-Any contributions you make to DocsTranslator are **greatly appreciated**.
-
-If you have a suggestion or modification that would make DocsTranslator better, please [fork the repo](https://github.com/magicmq/docs-translator/fork) and create a pull request. You can also simply [open an issue](https://github.com/magicmq/docs-translator/issues/new) with the tag "enhancement".
-
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+DocsTranslator generates log files in the `logs` folder of the working directory. A separate log file is created for each log file, and . Log files are created fresh for each run of the application- they are not appended.
 
 ## Settings
 
 The `settings.yml` file is the main configuration file for the project. If a `settings.yml` file doesn't already exist in the same directory as the DocsTranslator JAR file when it is run, then a default version is generated and placed there.
 
 Options are outlined below.
+
+### `translateJobs`:
+
+Use this section to define a list of "translate jobs". Typically, each job is a different version of an artifact: for example, each version of the spigot-api (corresponding to each Minecraft version). To execute translate jobs more quickly, they are run in parallel using Java's [ExecutorService](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/ExecutorService.html).
+
+This value is a list, and each item in the list should contain the following parameters:
+
+- `pyPIName`: The name of the package (filled into the `settings.py`) for publishing to PyPI for this job.
+- `pyPIVersion`: The version of the package (filled into the `settings.py) for publishing to PyPI for this job.
+- `artifacts`: A list of artifacts to be translated for this job (in the format `groupId:artifactId:version`).
+- `pyModules` (optional): Modules to include in the final Python package that are not located within another package (with an `__init__.py` file). Each item should be a URL pointing to a remotely hosted `.py` file.
+
+### `batching`:
+
+Options pertaining to batching jobs (running them in parallel).
+
+- `threads`: The number of threads that the job executor service should use
 
 ### `maven`:
 
@@ -79,7 +81,6 @@ Options pertaining to fetching the JAR file (and its dependencies) to be transla
 - `useCentral`: If set to `true`, Maven Central will be included as one of the remote repositories to search for dependencies.
 - `repositories`: A list of remote repositories to be searched for the listed artifacts to translate (and its dependencies). Each item in the list should contain an `id` to identify it and a `url` pointing to the location of the remote repository.
 - `deleteOnStart`: If set to `true`, the folder containing the local Maven repository will be deleted when DocsTranslator first runs.
-- `artifacts`: A list of artifacts (in the format `groupId:artifactId:version`) to fetch and translate.
 - `excludeArtifacts`: A list of artifacts to exclude. Useful for excluding dependency artifacts from translation.
   - Use the format `groupId:artifactId` to exclude a single artifact
   - Use the format `groupId` to exclude all artifacts under a particular group
@@ -179,13 +180,10 @@ Options for generated `setup.py` and `pyproject.toml` files.
 
 Options for the generated `setup.py` file.
 
-- `name`: The name of the Python package.
-- `version`: The version of the Python package.
 - `author`: The author of the Python package.
 - `authorEmail`: The author's email.
 - `description`: The description of the Python package.
 - `url`: The URL pointing to the site of the Python package.
-- `pyModules`: Modules to include in the final Python package that are not located within another package (with an `__init__.py` file).
 - `pythonRequires`: The minimum required Python version to install the package.
 - `classifiers`: Trove classifiers for the project.
 
@@ -248,3 +246,26 @@ Based on my own testing, it seems that the Pylance extension in VSCode, the IDE 
 - HTML tags pertaining to tables: `<table>`, `<th>`, `<tr>`, `<td>`, etc.
 - HTML heading tags: `<h1>`, `<h2>`, `<h3>`, etc.
 - Other miscellaneous tags: `<blockquote>`, and more
+
+### Building DocsTranslator
+
+Building requires [Maven](https://maven.apache.org/) and [Git](https://git-scm.com/). Maven 3+ is recommended for building the project. Follow these steps:
+
+1. Clone the repository: `git clone https://github.com/magicmq/docs-translator.git`
+2. Enter the repository root: `cd docs-translator`
+3. Build with Maven: `mvn clean package`
+4. Built files will be located in the `target` directory.
+
+**Note:** Maven shades Jython and some other runtime dependencies into the final JAR file. The shaded JAR is `docs-translator-{VERSION}.jar`, *not* `original-docs-translator-{VERSION}.jar`.
+
+## Contributing
+
+Any contributions you make to DocsTranslator are **greatly appreciated**.
+
+If you have a suggestion or modification that would make DocsTranslator better, please [fork the repo](https://github.com/magicmq/docs-translator/fork) and create a pull request. You can also simply [open an issue](https://github.com/magicmq/docs-translator/issues/new) with the tag "enhancement".
+
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request

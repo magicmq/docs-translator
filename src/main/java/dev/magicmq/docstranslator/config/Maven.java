@@ -25,7 +25,6 @@ public class Maven {
     private boolean useCentral;
     private List<Repository> repositories;
     private boolean deleteOnStart;
-    private List<String> artifacts;
     private List<String> excludeArtifacts;
     private String dependencyScope;
 
@@ -59,14 +58,6 @@ public class Maven {
 
     public void setDeleteOnStart(boolean deleteOnStart) {
         this.deleteOnStart = deleteOnStart;
-    }
-
-    public List<String> getArtifacts() {
-        return artifacts;
-    }
-
-    public void setArtifacts(List<String> artifacts) {
-        this.artifacts = artifacts;
     }
 
     public List<String> getExcludeArtifacts() {

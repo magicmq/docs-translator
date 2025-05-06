@@ -1,14 +1,79 @@
+translateJobs:
+  - pyPIName: 'pyspigot-spigot-sources'
+    pyPIVersion: '1.16.5'
+    artifacts:
+      - 'org.spigotmc:spigot-api:1.16.5-R0.1-SNAPSHOT'
+  - pyPIName: 'pyspigot-spigot-sources'
+    pyPIVersion: '1.17.1'
+    artifacts:
+      - 'org.spigotmc:spigot-api:1.17.1-R0.1-SNAPSHOT'
+  - pyPIName: 'pyspigot-spigot-sources'
+    pyPIVersion: '1.18.2'
+    artifacts:
+      - 'org.spigotmc:spigot-api:1.18.2-R0.1-SNAPSHOT'
+  - pyPIName: 'pyspigot-spigot-sources'
+    pyPIVersion: '1.19.4'
+    artifacts:
+      - 'org.spigotmc:spigot-api:1.19.4-R0.1-SNAPSHOT'
+  - pyPIName: 'pyspigot-spigot-sources'
+    pyPIVersion: '1.20'
+    artifacts:
+      - 'org.spigotmc:spigot-api:1.20-R0.1-SNAPSHOT'
+  - pyPIName: 'pyspigot-spigot-sources'
+    pyPIVersion: '1.20.1'
+    artifacts:
+      - 'org.spigotmc:spigot-api:1.20.1-R0.1-SNAPSHOT'
+  - pyPIName: 'pyspigot-spigot-sources'
+    pyPIVersion: '1.20.2'
+    artifacts:
+      - 'org.spigotmc:spigot-api:1.20.2-R0.1-SNAPSHOT'
+  - pyPIName: 'pyspigot-spigot-sources'
+    pyPIVersion: '1.20.3'
+    artifacts:
+      - 'org.spigotmc:spigot-api:1.20.3-R0.1-SNAPSHOT'
+  - pyPIName: 'pyspigot-spigot-sources'
+    pyPIVersion: '1.20.4'
+    artifacts:
+      - 'org.spigotmc:spigot-api:1.20.4-R0.1-SNAPSHOT'
+  - pyPIName: 'pyspigot-spigot-sources'
+    pyPIVersion: '1.20.5'
+    artifacts:
+      - 'org.spigotmc:spigot-api:1.20.5-R0.1-SNAPSHOT'
+  - pyPIName: 'pyspigot-spigot-sources'
+    pyPIVersion: '1.20.6'
+    artifacts:
+      - 'org.spigotmc:spigot-api:1.20.6-R0.1-SNAPSHOT'
+  - pyPIName: 'pyspigot-spigot-sources'
+    pyPIVersion: '1.21'
+    artifacts:
+      - 'org.spigotmc:spigot-api:1.21-R0.1-SNAPSHOT'
+  - pyPIName: 'pyspigot-spigot-sources'
+    pyPIVersion: '1.21.1'
+    artifacts:
+      - 'org.spigotmc:spigot-api:1.21.1-R0.1-SNAPSHOT'
+  - pyPIName: 'pyspigot-spigot-sources'
+    pyPIVersion: '1.21.2'
+    artifacts:
+      - 'org.spigotmc:spigot-api:1.21.2-R0.1-SNAPSHOT'
+  - pyPIName: 'pyspigot-spigot-sources'
+    pyPIVersion: '1.21.3'
+    artifacts:
+      - 'org.spigotmc:spigot-api:1.21.3-R0.1-SNAPSHOT'
+  - pyPIName: 'pyspigot-spigot-sources'
+    pyPIVersion: '1.21.4'
+    artifacts:
+      - 'org.spigotmc:spigot-api:1.21.4-R0.1-SNAPSHOT'
+
+batching:
+  threads: 4
+
 maven:
   path: 'maven'
   useCentral: true
   repositories:
-    - id: 'magicmq-repo'
-      url: 'https://repo.magicmq.dev/repository/maven-snapshots/'
+    - id: 'spigot-repo'
+      url: 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/'
   deleteOnStart: true
-  artifacts:
-    - 'dev.magicmq:pyspigot-bukkit:0.9.1-SNAPSHOT'
-  excludeArtifacts:
-    - 'org.python:jython-standalone'
   dependencyScope: 'runtime'
 
 jdkSources:
@@ -140,15 +205,10 @@ formats:
 
 packaging:
   setup:
-    name: 'pyspigot-bukkit-sources'
-    version: '0.9.1'
     author: 'magicmq'
     authorEmail: 'business@magicmq.dev'
-    description: 'Translated PySpigot-Bukkit sources for writing PySpigot scripts'
-    url: 'https://pyspigot-docs.magicmq.dev'
-    pyModules:
-      - 'https://raw.githubusercontent.com/magicmq/pyspigot/refs/tags/v0.9.0/bukkit/src/main/resources/Lib/pyspigot.py'
-      - 'https://raw.githubusercontent.com/magicmq/pyspigot/refs/tags/v0.9.0/core/src/main/resources/Lib/function.py'
+    description: 'Translated Spigot sources for writing PySpigot scripts'
+    url: 'https://pyspigot-docs.magicmq.dev/misc/autocomplete'
     pythonRequires: '>=3.9'
     classifiers:
       - 'Programming Language :: Python :: 3'

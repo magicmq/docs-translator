@@ -40,9 +40,17 @@ public class PackagingGenerator {
     private static final Pattern classifierPattern = Pattern.compile("( *)%classifiers%");
 
     private final Path outputDir;
+    private final String pyPIName;
+    private final String pyPIVersion;
+    private final List<String> pyModules;
 
-    public PackagingGenerator(Path outputDir) {
+    public PackagingGenerator(Path outputDir, String pyPIName, String pyPIVersion, List<String> pyModules) {
         this.outputDir = outputDir;
+        this.pyPIName = pyPIName;
+        this.pyPIVersion = pyPIVersion;
+        if (pyModules == null)
+            pyModules = Collections.emptyList();
+        this.pyModules = pyModules;
     }
 
     public void generate() throws IOException {
@@ -58,13 +66,6 @@ public class PackagingGenerator {
 
     private void generateSetupPy() throws IOException {
         String setup = SettingsProvider.get().getSettings().getFormats().getPackaging().getSetup();
-
-        List<String> pyModules;
-        if (SettingsProvider.get().getSettings().getPackaging().getSetup().getPyModules() != null) {
-            pyModules = SettingsProvider.get().getSettings().getPackaging().getSetup().getPyModules();
-        } else {
-            pyModules = Collections.emptyList();
-        }
 
         List<String> pyModuleNames = new ArrayList<>();
         for (String pyModule : pyModules) {
@@ -88,8 +89,8 @@ public class PackagingGenerator {
                 .toList();
 
         setup = setup
-                .replace("%name%", SettingsProvider.get().getSettings().getPackaging().getSetup().getName())
-                .replace("%version%", SettingsProvider.get().getSettings().getPackaging().getSetup().getVersion())
+                .replace("%name%", pyPIName)
+                .replace("%version%", pyPIVersion)
                 .replace("%author%", SettingsProvider.get().getSettings().getPackaging().getSetup().getAuthor())
                 .replace("%author_email%", SettingsProvider.get().getSettings().getPackaging().getSetup().getAuthorEmail())
                 .replace("%description%", SettingsProvider.get().getSettings().getPackaging().getSetup().getDescription())

@@ -1,5 +1,5 @@
 <configuration>
-    <property name="LOG_PATTERN" value="[%d{yyyy-MM-dd HH:mm:ss}] [%logger] [%level] %msg%n"/>
+    <property name="LOG_PATTERN" value="[%d{yyyy-MM-dd HH:mm:ss}] [%thread \(Job %X{job}\)] %level %logger{0} - %msg%n"/>
 
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
@@ -7,17 +7,25 @@
         </encoder>
     </appender>
 
-    <appender name="FILE" class="ch.qos.logback.core.FileAppender">
-        <file>output.log</file>
-        <append>true</append>
-        <encoder>
-            <pattern>${LOG_PATTERN}</pattern>
-        </encoder>
+    <appender name="SIFT" class="ch.qos.logback.classic.sift.SiftingAppender">
+        <discriminator>
+            <key>job</key>
+            <defaultValue>unknown</defaultValue>
+        </discriminator>
+        <sift>
+            <appender name="FILE-${job}" class="ch.qos.logback.core.FileAppender">
+                <file>logs/job-${job}.log</file>
+                <append>false</append>
+                <encoder>
+                    <pattern>${LOG_PATTERN}</pattern>
+                </encoder>
+            </appender>
+        </sift>
     </appender>
 
     <root level="INFO">
         <appender-ref ref="CONSOLE"/>
-        <appender-ref ref="FILE"/>
+        <appender-ref ref="SIFT"/>
     </root>
 
     <logger name="dev.magicmq" level="INFO"/>
