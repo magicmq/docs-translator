@@ -36,7 +36,7 @@ public class Settings {
         return translateJobs;
     }
 
-    public void setTranslate(List<TranslateJob> translateJobs) {
+    public void setTranslateJobs(List<TranslateJob> translateJobs) {
         this.translateJobs = translateJobs;
     }
 
