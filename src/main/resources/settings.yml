@@ -164,7 +164,8 @@ formats:
     returnRegular: '...'
     returnWithValue: 'return %value%'
   field:
-    initializer: '%name% = %value%'
+    initializer: '%name%: %type% = ...'
+    valuesDocString: 'Java Value(s): %values%'
   docString:
     author: 'Author(s): %text%'
     deprecated: ':deprecated: %text%'

@@ -19,6 +19,7 @@ package dev.magicmq.docstranslator.config.formats;
 public class Field {
 
     private String initializer;
+    private String valuesDocString;
 
     public String getInitializer() {
         return initializer;
@@ -26,5 +27,13 @@ public class Field {
 
     public void setInitializer(String initializer) {
         this.initializer = initializer;
+    }
+
+    public String getValuesDocString() {
+        return valuesDocString;
+    }
+
+    public void setValuesDocString(String valuesDocString) {
+        this.valuesDocString = valuesDocString;
     }
 }

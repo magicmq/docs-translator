@@ -41,15 +41,17 @@ public class Field extends Member {
     @Override
     public String translate() {
         List<String> variables = new ArrayList<>();
+        List<String> values = new ArrayList<>();
         for (VariableDeclarator declarator : fieldDeclaration.getVariables()) {
             String fieldName = declarator.getNameAsString();
             Expression initializer = declarator.getInitializer().orElse(null);
-            String fieldValue = initializer != null ? TypeUtils.convertValue(initializer.toString()) : "None";
+            String type = TypeUtils.convertType(declarator.getType());
             String replaced = SettingsProvider.get().getSettings().getFormats().getField().getInitializer()
                     .replace("%name%", fieldName)
-                    .replace("%value%", fieldValue);
+                    .replace("%type%", type);
 
             variables.add(StringUtils.indent(replaced, indent));
+            values.add(initializer != null ? "`" + TypeUtils.convertValue(initializer.toString()) + "`" : "`None`");
         }
         if (fieldDeclaration.getComment().isPresent() && fieldDeclaration.getComment().get() instanceof JavadocComment) {
             Javadoc javadoc = ((JavadocComment) fieldDeclaration.getComment().get()).parse();
@@ -59,6 +61,14 @@ public class Field extends Member {
         StringBuilder builder = new StringBuilder();
 
         builder.append(String.join("\n", variables));
+
+        if (docString == null) {
+            newDocString();
+            docString.setDescription(SettingsProvider.get().getSettings().getFormats().getField().getValuesDocString()
+                    .replace("%values%", String.join(",", values)));
+        } else
+            docString.addToDescription(SettingsProvider.get().getSettings().getFormats().getField().getValuesDocString()
+                    .replace("%values%", String.join(",", values)));
 
         if (docString != null) {
             builder.append("\n");
