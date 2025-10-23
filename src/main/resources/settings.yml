@@ -154,8 +154,8 @@ formats:
     declarationExtending: 'class %name%(%extends%):'
   enum:
     declaration: 'class %name%(Enum):'
-    entryRegular: '%name% = %num%'
-    entryWithArgs: '%name% = (%args%)'
+    entry: '%name%: "%type%" = ...'
+    valuesDocString: 'Java Value(s): %values%'
   function:
     initDefinition: 'def __init__(%params%):'
     definition: 'def %name%(%params%) -> %returns%:'

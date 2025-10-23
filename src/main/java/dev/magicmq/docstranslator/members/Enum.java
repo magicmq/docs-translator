@@ -48,8 +48,6 @@ public class Enum extends Member {
     private List<Function> functions;
     private List<Member> innerClasses;
 
-    private int counter;
-
     public Enum(int indent, Module parent) {
         super(indent);
         this.parent = parent;
@@ -57,7 +55,6 @@ public class Enum extends Member {
         this.entries = new ArrayList<>();
         this.functions = new ArrayList<>();
         this.innerClasses = new ArrayList<>();
-        this.counter = 0;
 
         if (!parent.hasImport("Enum"))
             parent.addImport("enum", "Enum");
@@ -80,10 +77,8 @@ public class Enum extends Member {
             }
         }
 
-        for (EnumConstantDeclaration enumConst : declaration.getEntries()) {
-            entries.add(new EnumEntry(indent + 4, this.counter, enumConst));
-            counter++;
-        }
+        for (EnumConstantDeclaration enumConst : declaration.getEntries())
+            entries.add(new EnumEntry(indent + 4, enumConst, declaration.getNameAsString()));
 
         for (MethodDeclaration method : declaration.getMethods()) {
             if (method.isPublic()) {

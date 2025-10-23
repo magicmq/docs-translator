@@ -31,19 +31,19 @@ import java.util.List;
 public class EnumEntry extends Member {
 
     private final EnumConstantDeclaration enumConstantDeclaration;
-    private final int value;
+    private final String enumName;
 
-    public EnumEntry(int indent, int value, EnumConstantDeclaration enumConstantDeclaration) {
+    public EnumEntry(int indent, EnumConstantDeclaration enumConstantDeclaration, String enumName) {
         super(indent);
         this.enumConstantDeclaration = enumConstantDeclaration;
-        this.value = value;
+        this.enumName = enumName;
     }
 
     @Override
     public String translate() {
         List<String> arguments = new ArrayList<>();
         for (Expression argument : enumConstantDeclaration.getArguments()) {
-            arguments.add(TypeUtils.convertValue(argument.toString()));
+            arguments.add("`" + TypeUtils.convertValue(argument.toString()) + "`");
         }
 
         if (enumConstantDeclaration.getComment().isPresent() && enumConstantDeclaration.getComment().get() instanceof JavadocComment) {
@@ -53,17 +53,20 @@ public class EnumEntry extends Member {
 
         StringBuilder builder = new StringBuilder();
 
-        String replaced;
-        if (!arguments.isEmpty()) {
-            replaced = SettingsProvider.get().getSettings().getFormats().getEnum().getEntryWithArgs()
-                    .replace("%name%", enumConstantDeclaration.getNameAsString())
-                    .replace("%args%", String.join(", ", arguments));
-        } else {
-            replaced = SettingsProvider.get().getSettings().getFormats().getEnum().getEntryRegular()
-                    .replace("%name%", enumConstantDeclaration.getNameAsString())
-                    .replace("%num%", "" + value);
-        }
+        String replaced = SettingsProvider.get().getSettings().getFormats().getEnum().getEntry()
+                .replace("%name%", enumConstantDeclaration.getNameAsString())
+                .replace("%type%", enumName);
         builder.append(StringUtils.indent(replaced, indent));
+
+        if (!arguments.isEmpty()) {
+            if (docString == null) {
+                newDocString();
+                docString.setDescription(SettingsProvider.get().getSettings().getFormats().getEnum().getValuesDocString()
+                        .replace("%values%", String.join(", ", arguments)));
+            } else
+                docString.addToDescription(SettingsProvider.get().getSettings().getFormats().getEnum().getValuesDocString()
+                        .replace("%values%", String.join(", ", arguments)));
+        }
 
         if (docString != null) {
             builder.append("\n");

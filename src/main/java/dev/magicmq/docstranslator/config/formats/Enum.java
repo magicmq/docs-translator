@@ -19,8 +19,8 @@ package dev.magicmq.docstranslator.config.formats;
 public class Enum {
 
     private String declaration;
-    private String entryRegular;
-    private String entryWithArgs;
+    private String entry;
+    private String valuesDocString;
 
     public String getDeclaration() {
         return declaration;
@@ -30,19 +30,19 @@ public class Enum {
         this.declaration = declaration;
     }
 
-    public String getEntryRegular() {
-        return entryRegular;
+    public String getEntry() {
+        return entry;
     }
 
-    public void setEntryRegular(String entryRegular) {
-        this.entryRegular = entryRegular;
+    public void setEntry(String entry) {
+        this.entry = entry;
     }
 
-    public String getEntryWithArgs() {
-        return entryWithArgs;
+    public String getValuesDocString() {
+        return valuesDocString;
     }
 
-    public void setEntryWithArgs(String entryWithArgs) {
-        this.entryWithArgs = entryWithArgs;
+    public void setValuesDocString(String valuesDocString) {
+        this.valuesDocString = valuesDocString;
     }
 }
