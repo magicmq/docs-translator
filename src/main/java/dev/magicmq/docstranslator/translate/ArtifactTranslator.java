@@ -102,7 +102,7 @@ public class ArtifactTranslator extends Translator {
                         }
                     } catch (NoSuchElementException e) {
                         logger.error("JavaParser was unable to parse source file '{}'", path, e);
-                    } catch (IOException e) {
+                    }  catch (Exception e) {
                         logger.error("Error when processing source file '{}'", path, e);
                     }
         });
