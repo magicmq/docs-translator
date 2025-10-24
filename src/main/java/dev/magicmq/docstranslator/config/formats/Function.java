@@ -22,8 +22,7 @@ public class Function {
     private String definition;
     private String parameterRegular;
     private String parameterVararg;
-    private String returnRegular;
-    private String returnWithValue;
+    private String returnStatement;
 
     public String getInitDefinition() {
         return initDefinition;
@@ -57,19 +56,11 @@ public class Function {
         this.parameterVararg = parameterVararg;
     }
 
-    public String getReturnRegular() {
-        return returnRegular;
+    public String getReturnStatement() {
+        return returnStatement;
     }
 
-    public void setReturnRegular(String returnRegular) {
-        this.returnRegular = returnRegular;
-    }
-
-    public String getReturnWithValue() {
-        return returnWithValue;
-    }
-
-    public void setReturnWithValue(String returnWithValue) {
-        this.returnWithValue = returnWithValue;
+    public void setReturnStatement(String returnStatement) {
+        this.returnStatement = returnStatement;
     }
 }

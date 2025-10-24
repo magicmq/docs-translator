@@ -43,10 +43,6 @@ public class AnnotationMember extends Member {
             DocString docString = newDocString(indent + 4);
             docString.parse(javadoc);
         }
-        String defaultReturn = null;
-        if (memberDeclaration.getDefaultValue().isPresent()) {
-            defaultReturn = TypeUtils.convertValue(memberDeclaration.getDefaultValue().get().toString());
-        }
 
         StringBuilder builder = new StringBuilder();
 
@@ -63,10 +59,7 @@ public class AnnotationMember extends Member {
             builder.append("\n");
         }
 
-        if (defaultReturn != null)
-            builder.append(StringUtils.indent(SettingsProvider.get().getSettings().getFormats().getFunction().getReturnWithValue().replace("%value%", defaultReturn), indent + 4));
-        else
-            builder.append(StringUtils.indent(SettingsProvider.get().getSettings().getFormats().getFunction().getReturnRegular(), indent + 4));
+        builder.append(StringUtils.indent(SettingsProvider.get().getSettings().getFormats().getFunction().getReturnStatement(), indent + 4));
 
         return builder.toString();
     }

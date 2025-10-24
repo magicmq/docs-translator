@@ -98,7 +98,7 @@ public class Function extends Member {
             builder.append("\n");
         }
 
-        builder.append(StringUtils.indent(SettingsProvider.get().getSettings().getFormats().getFunction().getReturnRegular(), indent + 4));
+        builder.append(StringUtils.indent(SettingsProvider.get().getSettings().getFormats().getFunction().getReturnStatement(), indent + 4));
 
         return builder.toString();
     }

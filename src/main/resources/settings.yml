@@ -161,8 +161,7 @@ formats:
     definition: 'def %name%(%params%) -> %returns%:'
     parameterRegular: '%name%: %type%'
     parameterVararg: '*%name%: Tuple[%type%, ...]'
-    returnRegular: '...'
-    returnWithValue: 'return %value%'
+    returnStatement: '...'
   field:
     initializer: '%name%: %type% = ...'
     valuesDocString: 'Java Value(s): %values%'
