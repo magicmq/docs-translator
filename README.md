@@ -133,8 +133,8 @@ Options for class formatting.
 Options for enum formatting.
 
 - `declaration`: The format of an enum declaration.
-- `entryRegular`: The format of an enum entry without any arguments.
-- `entryWithArgs`: The format of an enum entry with arguments.
+- `entry`: The format of an enum entry.
+- `valuesDocString`: The docstring to associate with an enum entry. Use `%values%` to specify the original Java value(s) of the enum entry (for reference, since they aren't included in the code itself).
 
 #### `function`:
 
@@ -144,14 +144,14 @@ Options for formatting of functions.
 - `definition`: The format of a regular function definition.
 - `parameterRegular`: The format of a regular function parameter.
 - `parameterVararg`: The format of a VarArg parameter.
-- `returnRegular`: The format of a function return statement if the corresponding Java method does not return anything.
-- `returnWithValue`: The format of a function return statement if the corresponding Java method returns a value. Used only for translation of Java annotations (where an element may have a default value).
+- `returnStatement`: The return statement for functions. Generally should be left as `...`, since the generated .py files do not need to have functional code
 
 #### `field`:
 
 Options for formatting of fields.
 
-- `initializer`: The format of a field with a value. Used mainly for `static` and `final` fields.
+- `initializer`: The format of a field with a value. Used for `static` and `final` fields.
+- `valuesDocString`: The docstring to associate with a field. Use `%values%` to specify the original Java value(s) of the field (for reference, since they aren't included in the code itself).
 
 #### `docString`:
 
@@ -239,13 +239,15 @@ Because Java is statically-typed, but Python is not, translation of Java types t
 
 ### JavaDoc Translation
 
-Because JavaDoc strings are ultimately converted into HTML when generating JavaDocs for a Java project, usage of HTML tags/elements are allowed when writing JavaDoc strings. This presents a problem when translating JavaDoc strings to Python docstrings because Python docstrings, unlike JavaDoc strings, do not natively support HTML tags/elements. There are some docstring parsers that use markdown
+Because JavaDoc comments are ultimately rendered as HTML when generating documentation for a Java project, the use of HTML tags and elements is not only allowed but quite common. This becomes a challenge when translating JavaDoc comments into Python docstrings, as Python docstrings do not natively support HTML. Some docstring parsers can interpret Markdown, however: Sphinx is a well-known example.
 
-Based on my own testing, it seems that the Pylance extension in VSCode, the IDE I am using to assess translation quality, interprets *some* (but not all) Markdown syntax. Therefore, I have attempted to translate as much as I can from HTML to Markdown, however, some HTML tags remain untranslated, namely:
+Based on my testing, the Pylance extension in VS Code supports some (but not all) Markdown syntax, and PyCharm provides similarly limited Markdown support in docstrings. As a result, DocsTranslator makes a best-effort attempt to convert certain HTML tags into equivalent Markdown constructs, such as bold, italics, inline code, code blocks, and lists. More complex or specialized HTML tags, however, remain untranslated, including:
 
 - HTML tags pertaining to tables: `<table>`, `<th>`, `<tr>`, `<td>`, etc.
 - HTML heading tags: `<h1>`, `<h2>`, `<h3>`, etc.
-- Other miscellaneous tags: `<blockquote>`, and more
+- Other miscellaneous tags: `<blockquote>`, etc.
+
+Efforts to more faithfully convert HTML-formatted JavaDoc comments into Markdown are ongoing.
 
 ### Building DocsTranslator
 
